@@ -1,5 +1,5 @@
 # DutchAuction
 Members of SLS:
-Shiny
-Lin Yue
-Steffi
+- Shiny
+- Lin Yue
+- Steffi
