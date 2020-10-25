@@ -1,6 +1,6 @@
-const Bank = artifacts.require("Bank");
+const Bank = artifacts.require("GLDToken");
 
-contract("Bank", async (accounts) => {
+contract("GLDToken", async (accounts) => {
   // accounts are the list of account created by the Truffle (i.e. 10 key pair)
   // by default, the first account will deploy the contract
   it("should make deployer the owner", async () => {

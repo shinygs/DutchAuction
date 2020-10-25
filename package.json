@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "cd webapp && npm start"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.4.0",
+    "@truffle/hdwallet-provider": "^1.1.0",
+    "web3": "^1.3.0"
+  }
+}
