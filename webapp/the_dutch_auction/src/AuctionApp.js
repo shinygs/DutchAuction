@@ -9,7 +9,7 @@ import CanvasJSReact from './canvasjs.react';
 // var CanvasJSReact = require('./canvasjs.react');
 var CanvasJS = CanvasJSReact.CanvasJS;
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-const startingMin = 10
+const startingMin = 20
 let time = startingMin * 60
 setInterval(startTimer, 1000)
 
@@ -22,8 +22,8 @@ class AuctionApp extends React.Component{
 
     
     componentDidMount() {
-        var fiveMinutes = 60 * 5,
-            display = document.querySelector('#time');
+        // var fiveMinutes = 60 * 5,
+        //     display = document.querySelector('#time');
         startTimer();
         
     };
@@ -87,7 +87,12 @@ function startTimer() {
     //   return `${parts[part]} ${part}`;
     //   }).join(" ");
     // }
-    // document.getElementById("count_down").innerHTML = `${minutes} : ${seconds}`;
+    if(document.getElementById("count_down") == null){
+        console.log("this is null");
+    }
+    else{
+        document.getElementById("count_down").innerHTML = `${minutes} : ${seconds}`;
+    }
     time--;
 }
 export default AuctionApp;
