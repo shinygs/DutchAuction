@@ -46,6 +46,8 @@ class AuctionApp extends React.Component{
         clearInterval(this.chartInterval);
       }
 
+
+      //comment out this method if dw the auto generated dynamic graph
       updateChart() {
         //all value to the dateset at runtime
 		yVal = yVal +  Math.round(5 + Math.random() *(-5-5));
