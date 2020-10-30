@@ -1,185 +1,243 @@
-//SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.0;
 import "./GLDToken.sol";
 
 contract DutchAuction {
   //events
   event BidSubmission(address indexed sender, uint256 amount);
-
-  //constants
-  uint constant public MAX_TOKENS_SOLD = 20 * 10**18; //20 tokens
+  
+  //constant
+  uint constant public MAX_TOKENS_SOLD = 100 * 10**18; // 100 Tokens
   uint constant public WAITING_PERIOD = 20 minutes;
 
-  //storage
   GLDToken public gldToken;
-  address public wallet;
+  address payable public wallet; // tokens seller
   address public owner;
-  uint public ceiling;
-  uint public priceFactor;
+  uint public startingPrice; // starting price --> how much in total that was planned to earn
+  uint public priceFactor; // decrease rate
   uint public startBlock;
   uint public endTime;
   uint public totalReceived;
   uint public finalPrice;
   mapping (address => uint) public bids;
+  Stages public stage; //current stage
 
   enum Stages {
-    AuctionDeployed,
-    AuctionSetUp,
-    AuctionStarted,
-    AuctionEnded,
-    TradingStarted,
-    TokensDistributed
+      AuctionDeployed,
+      AuctionSetUp,
+      AuctionStarted,
+      AuctionEnded,
+      TradingStarted
   }
 
-  Stages public current_stage;
-
+  //modifiers
   modifier atStage(Stages _stage) {
-    require(current_stage == _stage);
-    _;
+      if (stage != _stage)
+          // Contract not in expected state
+          revert();
+      _;
   }
-
-  struct Bid {
-    uint256 price;
-    uint256 transfer;
-    bool placed;
-    bool claimed;
-    bool isBitcoin;
-  }
-
-  mapping (address => Bid) public bids2;
 
   modifier isOwner() {
-    require(msg.sender == owner); //only owner allowed to proceed
-    _;
+      if (msg.sender != owner)
+          // Only owner is allowed to proceed
+          revert();
+      _;
   }
 
   modifier isWallet() {
-    require(msg.sender == wallet); //only wallet allowed to proceed
-    _;
-  }
-
-  modifier isValidPayLoad() {
-    require(msg.data.length > 4 && msg.data.length < 36);
-    _;
-  }
-
-  modifier timedTransactions() {
-    if(current_stage == Stages.AuctionStarted && calcTokenPrice() <= calcStopPrice()){
-      finalizeAuction();
-    }
-    if(current_stage == Stages.AuctionEnded && now > endTime + WAITING_PERIOD){
-      current_stage = Stages.TradingStarted;
+      if (msg.sender != wallet)
+          // Only wallet is allowed to proceed
+          revert();
       _;
-    }
   }
 
-  constructor(address _wallet, uint _ceiling, uint _priceFactor) public{
-    if (_wallet == address(0) || _ceiling == 0 || _priceFactor == 0){
-      revert();
-    }
-    owner = msg.sender;
-    wallet = _wallet;
-    ceiling = _ceiling;
-    priceFactor = _priceFactor;
-    current_stage = Stages.AuctionDeployed;
+  modifier isValidPayload() {
+      if (msg.data.length != 4 && msg.data.length != 36)
+          revert();
+      _;
   }
 
-  function setup (address _gldToken) public isOwner atStage(Stages.AuctionDeployed){
-    if(_gldToken == address(0x0)){
-      revert();
-    }
-    gldToken = GLDToken(_gldToken);
-    //validdate token balance
-    if (gldToken.balanceOf(_gldToken) != MAX_TOKENS_SOLD){
-      revert();
-    }
-    current_stage = Stages.AuctionSetUp;
+  modifier timedTransitions() {
+      if (stage == Stages.AuctionStarted && calcTokenPrice() <= calcStopPrice())
+          finalizeAuction();
+      if (stage == Stages.AuctionEnded && now > endTime + WAITING_PERIOD)
+          stage = Stages.TradingStarted;
+      _;
   }
 
-  function startAuction() public isWallet atStage(Stages.AuctionSetUp){
-    current_stage = Stages.AuctionStarted;
-    startBlock = block.number;
+  //functions
+  /// @dev Contract constructor function sets owner.
+  /// @param _wallet Gnosis GLDTokens wallet.
+  /// @param _startingPrice Auction starting price.
+  /// @param _priceFactor Auction price factor.
+  constructor(address payable _wallet, uint _startingPrice, uint _priceFactor)
+      public
+  {
+      if (_wallet == address(0x0) || _startingPrice == 0 || _priceFactor == 0)
+          // Arguments are null.
+          revert();
+      owner = msg.sender;
+      wallet = _wallet;
+      startingPrice = _startingPrice;
+      priceFactor = _priceFactor;
+      stage = Stages.AuctionDeployed;
   }
 
-  function changeSettings(uint _ceiling, uint _priceFactor) public isWallet atStage(Stages.AuctionSetUp){
-    ceiling = _ceiling;
-    priceFactor = _priceFactor;
+  /// @dev Setup function sets external contracts' addresses.
+  /// @param _gldToken Gnosis gldToken address.
+  function setup(address _gldToken)
+      public
+      isOwner
+      atStage(Stages.AuctionDeployed)
+  {
+      if (_gldToken == address(0x0))
+          // Argument is null.
+          revert();
+      gldToken = GLDToken(_gldToken);
+      // Validate token balance
+      if (gldToken.balanceOf(address(this)) != MAX_TOKENS_SOLD)
+          revert();
+      stage = Stages.AuctionSetUp;
   }
 
-  function calcCurrentTokenPrice() public timedTransactions returns (uint){
-    if(current_stage == Stages.AuctionEnded || current_stage == Stages.TradingStarted){
-      return finalPrice;
-    }
-    return calcTokenPrice();
+  /// @dev Starts auction and sets startBlock.
+  function startAuction()
+      public
+      isWallet
+      atStage(Stages.AuctionSetUp)
+  {
+      stage = Stages.AuctionStarted;
+      startBlock = block.number;
+      //should i put a start time here?
   }
 
-  function updateStage() public timedTransactions returns (Stages){
-    return current_stage;
+  /// @dev Changes auction starting price and start price factor before auction is started.
+  /// @param _startingPrice Updated auction startingPrice.
+  /// @param _priceFactor Updated start price factor.
+  function changeSettings(uint _startingPrice, uint _priceFactor)
+      public
+      isWallet
+      atStage(Stages.AuctionSetUp)
+  {
+      startingPrice = _startingPrice;
+      priceFactor = _priceFactor;
   }
 
-  function bid (address receiver) public payable isValidPayLoad timedTransactions atStage(Stages.AuctionStarted) returns (uint amount){
-    //if bid is done by ShapeShift, receiver address is set 
-    if(receiver == address(0)){
-      receiver = msg.sender;
-    }
-    amount = msg.value;
-    // // Prevent that more than 90% of tokens are sold. Only relevant if cap not reached.
-    uint maxWei = (MAX_TOKENS_SOLD / 10**18) * calcTokenPrice() - totalReceived;
-    // uint maxWeiBasedOnTotalReceived = ceiling - totalReceived;
-    // if (maxWeiBasedOnTotalReceived < maxWei){
-    //   maxWei = maxWeiBasedOnTotalReceived;
-    // }
-
-    // //only invest maximum possible amount
-    // if(amount > maxWei){
-    //   amount = maxWei;
-    //   // Send change back to receiver address. In case of a ShapeShift bid the user receives the change back directly.
-    //     if (!receiver.send(msg.value - amount))
-    //         // Sending failed
-    //         throw;
-    // }
-
-    // Forward funding to ether wallet
-    if (amount == 0 || !payable(wallet).send(amount))
-      // No amount sent or sending failed
-      revert();
-    
-    bids[receiver] += amount;
-    totalReceived += amount;
-
-    if (maxWei == amount)
-      // When maxWei is equal to the big amount the auction is ended and finalizeAuction is triggered.
-      finalizeAuction();
-
-    BidSubmission(receiver, amount);
+  /// @dev Calculates current token price.
+  /// @return Returns token price.
+  function calcCurrentTokenPrice()
+      public
+      timedTransitions
+      returns (uint)
+  {
+      if (stage == Stages.AuctionEnded || stage == Stages.TradingStarted)
+          return finalPrice;
+      return calcTokenPrice();
   }
 
-  function claimTokens(address receiver) public isValidPayLoad timedTransactions atStage(Stages.TradingStarted){
-    if(receiver == address(0))
-      receiver = msg.sender;
-    uint tokenCount = bids[receiver] * 10**18 / finalPrice;
-    bids[receiver] = 0;
-    gldToken.transfer(receiver, tokenCount);
+  /// @dev Returns correct stage, even if a function with timedTransitions modifier has not yet been called yet.
+  /// @return Returns current auction stage.
+  function updateStage()
+      public
+      timedTransitions
+      returns (Stages)
+  {
+      return stage;
   }
 
-  function calcStopPrice() view public returns(uint){
-    return totalReceived * 10**18 / MAX_TOKENS_SOLD + 1;
+  /// @dev Allows to send a bid to the auction.
+  /// @param receiver Bid will be assigned to this address if set.
+  function bid(address payable receiver)
+      public
+      payable
+      isValidPayload
+      timedTransitions
+      atStage(Stages.AuctionStarted)
+      returns (uint amount)
+  {
+      // If a bid is done on behalf of a user via ShapeShift, the receiver address is set.
+      if (receiver == address(0x0))
+          receiver = msg.sender;
+      amount = msg.value;
+      // Prevent that more than 90% of tokens are sold. Only relevant if cap not reached.
+      uint maxWei = (MAX_TOKENS_SOLD / 10**18) * calcTokenPrice() - totalReceived; // calculate how much is need to earn
+      uint maxWeiBasedOnTotalReceived = startingPrice - totalReceived; // if total received is not zero --> got previous bids
+      if (maxWeiBasedOnTotalReceived < maxWei)
+          maxWei = maxWeiBasedOnTotalReceived;
+      // Only invest maximum possible amount.
+      if (amount > maxWei) {
+          amount = maxWei;
+          // Send change back to receiver address. In case of a ShapeShift bid the user receives the change back directly.
+          if (!receiver.send(msg.value - amount))
+              // Sending failed
+              revert();
+      }
+      // Forward funding to ether wallet
+      if (amount == 0 || !wallet.send(amount))
+          // No amount sent or sending failed
+          revert();
+      bids[receiver] += amount; // remember the claim of each participant
+      totalReceived += amount; // amount of money earned
+      if (maxWei == amount)
+          // When maxWei is equal to the big amount the auction is ended and finalizeAuction is triggered.
+          finalizeAuction();
+      BidSubmission(receiver, amount);
   }
 
-  function calcTokenPrice() view public returns(uint){
-    return ceiling - priceFactor*(block.number - startBlock);
+  /// @dev Claims tokens for bidder after auction.
+  /// @param receiver Tokens will be assigned to this address if set.
+  function claimTokens(address receiver)
+      public
+      isValidPayload
+      timedTransitions
+      atStage(Stages.TradingStarted)
+  {
+      if (receiver == address(0x0))
+          receiver = msg.sender;
+      uint tokenCount = bids[receiver] * 10**18 / finalPrice;
+      bids[receiver] = 0;
+      gldToken.transfer(receiver, tokenCount);
   }
 
-  function finalizeAuction() private {
-    current_stage = Stages.AuctionEnded;
-    if(totalReceived == ceiling){
-      finalPrice = calcTokenPrice();
-    } else{
-      finalPrice = calcStopPrice();
-    }
-    uint soldTokens = totalReceived * 10**18 / finalPrice;
-    // Auction contract transfers all unsold tokens to inventory multisig
-    gldToken.transfer(wallet, MAX_TOKENS_SOLD - soldTokens);
-    endTime = now;
+  /// @dev Calculates stop price.
+  /// @return Returns stop price.
+  function calcStopPrice()
+      view
+      public
+      returns (uint)
+  {
+      return totalReceived * 10**18 / MAX_TOKENS_SOLD + 1;
+  }
+
+  /// @dev Calculates token price.
+  /// @return Returns token price.
+  function calcTokenPrice() //shouldn't price drop with time?
+      view
+      public
+      returns (uint)
+  {
+      return priceFactor * 10**18 / (block.number - startBlock + 7500) + 1;
+  }
+  
+  // private function
+  function finalizeAuction()
+      private
+  {
+      stage = Stages.AuctionEnded;
+      if (totalReceived == startingPrice) // if total money received is still at the starting price
+          finalPrice = calcTokenPrice();
+      else
+          finalPrice = calcStopPrice();
+      uint soldTokens = totalReceived * 10**18 / finalPrice;
+      // Auction contract transfers all unsold tokens to Gnosis inventory multisig
+      gldToken.transfer(wallet, MAX_TOKENS_SOLD - soldTokens);
+      endTime = now;
+  }
+
+  function toViewablePrice(uint longPrice)
+      public
+      returns(uint viewablePrice)
+  {
+    viewablePrice = longPrice / 1*10**18; // not accurate
   }
 }
