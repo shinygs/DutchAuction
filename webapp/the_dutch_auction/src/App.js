@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import "./App.css";
 import Web3 from "web3";
 import Navbar from './Navbar'
@@ -19,7 +20,8 @@ class App extends React.Component {
       deposit: 0,
       renderSession: true,
       showPopup: false,
-      current_price: "20"
+      current_price: "20",
+      tokens_remaining: "0"
     };
 
   }
@@ -64,9 +66,13 @@ class App extends React.Component {
     console.log("hello")
     if(!this.state.renderSession)
     {
+      
       // this.setState({showPopup: !this.state.showPopup})
       this.togglePopup()
     }
+    // else{
+    //   ReactDOM.unmountComponentAtNode(document.getElementById('count_down'))
+    // }
   }
 
 
@@ -94,8 +100,8 @@ class App extends React.Component {
               {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
               
 
-              {this.state.renderSession?<SelectSession /> : <AuctionApp current_price = {this.state.current_price}/>}
-
+              {this.state.renderSession?<SelectSession /> : <AuctionApp current_price = {this.state.current_price} remaining = {this.state.tokens_remaining}/>}
+              {/* {this.state.renderSession?<SelectSession /> : null} */}
               {/* <div id="count_down"></div> */}
               {/* <SelectSession renderme={this.state.renderSession}/> */}
               <button onClick={this.clickHandler.bind(this)}>{button_text}</button>
