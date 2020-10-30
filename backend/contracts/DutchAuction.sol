@@ -7,7 +7,7 @@ contract DutchAuction {
   event BidSubmission(address indexed sender, uint256 amount);
 
   //constants
-  uint constant public MAX_TOKENS_SOLD = 20 * 10*18; //20 tokens
+  uint constant public MAX_TOKENS_SOLD = 20 * 10**18; //20 tokens
   uint constant public WAITING_PERIOD = 20 minutes;
 
   //storage
@@ -74,7 +74,7 @@ contract DutchAuction {
   }
 
   constructor(address _wallet, uint _ceiling, uint _priceFactor) public{
-    if (_wallet == 0x0 || _ceiling == 0x0 || _priceFactor == 0x0){
+    if (_wallet == address(0) || _ceiling == 0 || _priceFactor == 0){
       revert();
     }
     owner = msg.sender;
@@ -90,7 +90,7 @@ contract DutchAuction {
     }
     gldToken = GLDToken(_gldToken);
     //validdate token balance
-    if (GLDToken.balanceOf(_gldToken) != MAX_TOKENS_SOLD){
+    if (gldToken.balanceOf(_gldToken) != MAX_TOKENS_SOLD){
       revert();
     }
     current_stage = Stages.AuctionSetUp;
@@ -140,7 +140,7 @@ contract DutchAuction {
     // }
 
     // Forward funding to ether wallet
-    if (amount == 0 || !payable(wallet.address).send(amount))
+    if (amount == 0 || !payable(wallet).send(amount))
       // No amount sent or sending failed
       revert();
     
@@ -155,7 +155,7 @@ contract DutchAuction {
   }
 
   function claimTokens(address receiver) public isValidPayLoad timedTransactions atStage(Stages.TradingStarted){
-    if(receiver == 0)
+    if(receiver == address(0))
       receiver = msg.sender;
     uint tokenCount = bids[receiver] * 10**18 / finalPrice;
     bids[receiver] = 0;
