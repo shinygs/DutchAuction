@@ -5,6 +5,7 @@ import Web3 from "web3";
 import Navbar from './Navbar'
 import Popup from './Popup'
 import SelectSession from "./SelectSession"
+import Button from 'react-bootstrap/Button';
 // import { Link } from 'react-router';
 import AuctionApp from "./AuctionApp";
 import {DUTCH_AUCTION_ADDRESS,DUTCH_AUCTION_ABI} from './config'
@@ -24,7 +25,8 @@ class App extends React.Component {
       current_price: "20",
       tokens_remaining: "0",
       loading: true,
-      set_up_string: ''
+      set_up_string: '',
+      showClaimTokens: false
     };
     this.getPrice = this.getPrice.bind(this)
     this.setUp = this.setUp.bind(this)
@@ -108,6 +110,9 @@ class App extends React.Component {
       
       // this.setState({showPopup: !this.state.showPopup})
       this.togglePopup()
+      this.setState({  
+        showClaimTokens: !this.state.showClaimTokens
+   }); 
     }
     else{
       this.startAuction()
@@ -180,6 +185,9 @@ class App extends React.Component {
                   </button>
               {/* <button onClick={() =>{this.setState({renderSession: !this.state.renderSession})}}>{button_text}</button> */}
               {this.state.showPopup?<Popup text={'At Clearance price:'+ this.state.current_price + 'ETH per token'}  closePopup={this.togglePopup.bind(this)} />: null}
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+              {this.state.showClaimTokens?<Button>Claim My Tokens!</Button>: null}
+              </div>
               {/* console.log(this.state.renderSession) */}
               {console.log(this.state.renderSession)}
               {/* <AuctionApp /> */}

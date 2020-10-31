@@ -25,6 +25,7 @@ class AuctionApp extends React.Component {
     this.state = {
       time: 16, //time is 15sec for testing (can change later)
       eth: 0 //for testing
+      //tokenPrice: 50
     }
     // this.updateChart();
     this.OnClickHandler = this.OnClickHandler.bind(this)
@@ -92,7 +93,7 @@ class AuctionApp extends React.Component {
 
     const options = {
       title: {
-        text: "Price VS Time"
+        text: "Bidding Price VS Time"
       },
       data: [{
         type: "spline",
@@ -105,7 +106,7 @@ class AuctionApp extends React.Component {
         <div id="count_down"></div>
         <div id="end_msg"></div>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
-        <h3>Current Bidding Price: {this.props.current_price}</h3>
+        <h3>Current Bidding Price: {yVal}</h3>
         <h3>Tokens remaining: {this.props.remaining}</h3>
 
         {/* {this.state.time} */}
@@ -128,7 +129,7 @@ class AuctionApp extends React.Component {
             } */}
         })()}
         {this.state.time != 0&& <BidButton />}
-        <h3>Expexted to recieve: {this.state.eth} eth</h3>
+        <h3>Expected to recieve: {this.state.eth} eth</h3>
         {/* <div>
               <input type = 'text' required></input>
               <button onClick={this.OnClickHandler()}>Submit</button>
