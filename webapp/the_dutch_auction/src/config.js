@@ -1,4 +1,5 @@
-export const DUTCH_AUCTION_ADDRESS = '0xB3E5c0C2E85fCCEc95802876ef4E3199891d0829'
+//import DutchAuction from "../../../backend/build/contracts/DutchAuction.json"
+export const DUTCH_AUCTION_ADDRESS = '0xAf8601c87A344911A358dca6EaB2E228FE3237F6'
 
 export const DUTCH_AUCTION_ABI = [
   {
@@ -52,7 +53,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -65,7 +67,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -84,7 +87,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -97,7 +101,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -110,7 +115,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -123,7 +129,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -136,7 +143,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -149,7 +157,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -162,7 +171,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -175,7 +185,22 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "startTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -188,7 +213,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -201,7 +227,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -214,7 +241,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -297,7 +325,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "payable",
-    "type": "function"
+    "type": "function",
+    "payable": true
   },
   {
     "inputs": [
@@ -323,7 +352,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -336,7 +366,8 @@ export const DUTCH_AUCTION_ABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [

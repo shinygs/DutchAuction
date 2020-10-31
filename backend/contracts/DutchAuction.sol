@@ -6,7 +6,7 @@ contract DutchAuction {
   event BidSubmission(address indexed sender, uint256 amount);
   
   //constant
-  uint constant public MAX_TOKENS_SOLD = 100 * 10**18; // 100 Tokens
+  uint constant public MAX_TOKENS_SOLD = 10 /* 10**18*/; // 10 Tokens
   uint constant public WAITING_PERIOD = 20 minutes;
 
   GLDToken public gldToken;
@@ -15,6 +15,7 @@ contract DutchAuction {
   uint public startingPrice; // starting price --> how much in total that was planned to earn
   uint public priceFactor; // decrease rate
   uint public startBlock;
+  uint public startTime;
   uint public endTime;
   uint public totalReceived;
   uint public finalPrice;
@@ -33,27 +34,27 @@ contract DutchAuction {
   modifier atStage(Stages _stage) {
       if (stage != _stage)
           // Contract not in expected state
-          revert();
+          revert("wrong stage");
       _;
   }
 
   modifier isOwner() {
       if (msg.sender != owner)
           // Only owner is allowed to proceed
-          revert();
+          revert("owner only");
       _;
   }
 
   modifier isWallet() {
       if (msg.sender != wallet)
           // Only wallet is allowed to proceed
-          revert();
+          revert("wallet only");
       _;
   }
 
   modifier isValidPayload() {
       if (msg.data.length != 4 && msg.data.length != 36)
-          revert();
+          revert("not valid payload");
       _;
   }
 
@@ -75,7 +76,7 @@ contract DutchAuction {
   {
       if (_wallet == address(0x0) || _startingPrice == 0 || _priceFactor == 0)
           // Arguments are null.
-          revert();
+          revert("constructor args null");
       owner = msg.sender;
       wallet = _wallet;
       startingPrice = _startingPrice;
@@ -92,11 +93,11 @@ contract DutchAuction {
   {
       if (_gldToken == address(0x0))
           // Argument is null.
-          revert();
+          revert("gold token address is null");
       gldToken = GLDToken(_gldToken);
       // Validate token balance
-      if (gldToken.balanceOf(address(this)) != MAX_TOKENS_SOLD)
-          revert();
+      if (gldToken.balanceOf(wallet) != MAX_TOKENS_SOLD) 
+          revert("invalid token balance");
       stage = Stages.AuctionSetUp;
   }
 
@@ -108,6 +109,7 @@ contract DutchAuction {
   {
       stage = Stages.AuctionStarted;
       startBlock = block.number;
+      startTime = now;
       //should i put a start time here?
   }
 
@@ -170,12 +172,12 @@ contract DutchAuction {
           // Send change back to receiver address. In case of a ShapeShift bid the user receives the change back directly.
           if (!receiver.send(msg.value - amount))
               // Sending failed
-              revert();
+              revert("sending failed1");
       }
       // Forward funding to ether wallet
       if (amount == 0 || !wallet.send(amount))
           // No amount sent or sending failed
-          revert();
+          revert("sending failed2");
       bids[receiver] += amount; // remember the claim of each participant
       totalReceived += amount; // amount of money earned
       if (maxWei == amount)
@@ -216,7 +218,9 @@ contract DutchAuction {
       public
       returns (uint)
   {
-      return priceFactor * 10**18 / (block.number - startBlock + 7500) + 1;
+      //return priceFactor * 10**18 / (block.number - startBlock + 7500) + 1;
+      return startingPrice - priceFactor /**10**18 +1*/; 
+      //return startingPrice;
   }
   
   // private function

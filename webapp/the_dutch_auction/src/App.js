@@ -23,9 +23,15 @@ class App extends React.Component {
       showPopup: false,
       current_price: "20",
       tokens_remaining: "0",
-      loading: true
+      loading: true,
+      set_up_string: ''
     };
     this.getPrice = this.getPrice.bind(this)
+    this.setUp = this.setUp.bind(this)
+    this.startAuction = this.startAuction.bind(this)
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    console.log("end of constructor")
   }
 
   async componentWillMount() {
@@ -36,16 +42,22 @@ class App extends React.Component {
 
   async loadBlockchainData() {
     const web3 = window.web3
-
+    this.setState({web3})
     const accounts = await web3.eth.getAccounts()
     console.log(accounts)
     this.setState({ account: accounts[0] })
     const dutchAuction = new web3.eth.Contract(DUTCH_AUCTION_ABI, DUTCH_AUCTION_ADDRESS)
     this.setState({ dutchAuction })
+    console.log("dutchau smart contract")
+    console.log(dutchAuction)
     const networkId = await web3.eth.net.getId()
     console.log(networkId)
     this.setState({ loading: false })
+    //this.setUp()
+    console.log("just after setup")
+    //this.startAuction()
     this.getPrice()
+    console.log("End of Load Data")    
   }
   async loadWeb3() {
     if (window.ethereum) {
@@ -61,9 +73,23 @@ class App extends React.Component {
   }
   async getPrice() {
     console.log(this.state.dutchAuction)
-    const current_price = await this.state.dutchAuction.methods.calcTokenPrice().call()
-    current_price = await this.state.dutchAuction.methods.toViewablePrice(current_price).call()
+    let current_price = await this.state.dutchAuction.methods.calcTokenPrice().call() 
+    console.log("current price= "+current_price)
+    //current_price = await this.state.dutchAuction.methods.toViewablePrice(current_price).call()
+    //current_price = this.state.web3.fromWei( current_price.toNumber(), 'ether' )
     this.setState({current_price})
+  }
+
+  async setUp() {
+    console.log("set up")
+    //set up param is gold token address
+    await this.state.dutchAuction.methods.setup(this.state.set_up_string).send({ from: this.state.account })
+    //await this.state.dutchAuction.methods.setup("0x9D78534Dc5d9D7Ee844dCcB90c8616F6D15B6883").send({ from: this.state.account })
+  }
+
+  async startAuction() {
+    await this.state.dutchAuction.methods.startAuction().send({ from: this.state.account })
+    console.log("start auction")
   }
 
   togglePopup() {  
@@ -74,6 +100,7 @@ class App extends React.Component {
 
   clickHandler(){
     this.setState({renderSession: !this.state.renderSession})
+
     
     console.log("hello")
     if(!this.state.renderSession)
@@ -82,12 +109,23 @@ class App extends React.Component {
       // this.setState({showPopup: !this.state.showPopup})
       this.togglePopup()
     }
+    else{
+      this.startAuction()
+    }
+    
+    //this.startAuction()
     // else{
     //   ReactDOM.unmountComponentAtNode(document.getElementById('count_down'))
     // }
   }
-
-
+  handleChange(event) {
+    this.setState({set_up_string: event.target.value});
+  }
+  handleSubmit(event) {
+    alert('setting up token with address: ' + this.state.set_up_string);
+    this.setUp();
+    event.preventDefault();
+  }
   
   render() {
     const button_text = this.state.renderSession? "Start Auction" : "End Auction";
@@ -112,11 +150,34 @@ class App extends React.Component {
               {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
               
 
-              {this.state.loading ? <div id="loader" className="text-center"><p className="text-center">Loading...</p></div> :this.state.renderSession?<SelectSession /> : <AuctionApp getPrice={this.getPrice} current_price = {this.state.current_price} remaining = {this.state.tokens_remaining}/>}
+              {this.state.loading ? 
+              <div id="loader" className="text-center">
+                <p className="text-center">Loading...</p>
+                </div> 
+                :this.state.renderSession?<div>
+                  <SelectSession />
+                  <form onSubmit={this.handleSubmit}>
+                    <label>
+                      Set up auction, put GLDToken address:
+                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} />
+                    </label>
+                    <input type="submit" value="Submit" />
+                  </form>
+                  </div>
+                 : 
+                <AuctionApp getPrice={this.getPrice} 
+                current_price = {this.state.current_price} 
+                remaining = {this.state.tokens_remaining}/>}
               {/* {this.state.renderSession?<SelectSession /> : null} */}
               {/* <div id="count_down"></div> */}
               {/* <SelectSession renderme={this.state.renderSession}/> */}
-              <button onClick={this.clickHandler.bind(this)}>{button_text}</button>
+              
+              
+              <button onClick={
+                this.clickHandler.bind(this)
+                }>
+                  {button_text}
+                  </button>
               {/* <button onClick={() =>{this.setState({renderSession: !this.state.renderSession})}}>{button_text}</button> */}
               {this.state.showPopup?<Popup text={'At Clearance price:'+ this.state.current_price + 'ETH per token'}  closePopup={this.togglePopup.bind(this)} />: null}
               {/* console.log(this.state.renderSession) */}
