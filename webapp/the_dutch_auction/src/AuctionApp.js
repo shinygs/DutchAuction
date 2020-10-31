@@ -92,7 +92,7 @@ class AuctionApp extends React.Component {
 
     const options = {
       title: {
-        text: "Price VS Time"
+        text: "Bidding Price VS Time"
       },
       data: [{
         type: "spline",
@@ -105,7 +105,7 @@ class AuctionApp extends React.Component {
         <div id="count_down"></div>
         <div id="end_msg"></div>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
-        <h3>Current Bidding Price: {this.props.current_price}</h3>
+        <h3>Current Bidding Price: {yVal}</h3>
         <h3>Tokens remaining: {this.props.remaining}</h3>
 
         {/* {this.state.time} */}
