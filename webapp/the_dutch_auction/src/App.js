@@ -73,8 +73,10 @@ class App extends React.Component {
   }
   async getPrice() {
     console.log(this.state.dutchAuction)
-    let current_price = await this.state.dutchAuction.methods.calcTokenPrice().call() 
+    let stage = await this.state.dutchAuction.stage.call() 
+    let current_price = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call() 
     console.log("current price= "+current_price)
+    console.log("stage: " + stage)
     //current_price = await this.state.dutchAuction.methods.toViewablePrice(current_price).call()
     //current_price = this.state.web3.fromWei( current_price.toNumber(), 'ether' )
     this.setState({current_price})

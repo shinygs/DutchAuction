@@ -368,24 +368,5 @@ export const DUTCH_AUCTION_ABI = [
     "stateMutability": "view",
     "type": "function",
     "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "longPrice",
-        "type": "uint256"
-      }
-    ],
-    "name": "toViewablePrice",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "viewablePrice",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
   }
 ]

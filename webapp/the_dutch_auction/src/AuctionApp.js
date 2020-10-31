@@ -24,7 +24,7 @@ class AuctionApp extends React.Component {
     super(props)
     this.state = {
       time: 16, //time is 15sec for testing (can change later)
-      eth: 0 //for testing
+      tokens: 0 //for testing
     }
     // this.updateChart();
     this.OnClickHandler = this.OnClickHandler.bind(this)
@@ -128,7 +128,7 @@ class AuctionApp extends React.Component {
             } */}
         })()}
         {this.state.time != 0&& <BidButton />}
-        <h3>Expexted to recieve: {this.state.eth} eth</h3>
+        <h3>Expected to recieve: >= {this.state.tokens} Tokens</h3>
         {/* <div>
               <input type = 'text' required></input>
               <button onClick={this.OnClickHandler()}>Submit</button>

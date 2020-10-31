@@ -6,18 +6,19 @@ contract DutchAuction {
   event BidSubmission(address indexed sender, uint256 amount);
   
   //constant
-  uint constant public MAX_TOKENS_SOLD = 10 /* 10**18*/; // 10 Tokens
+  //uint constant public MAX_TOKENS_SOLD = 10*10**18; // 10 Tokens
   uint constant public WAITING_PERIOD = 20 minutes;
 
   GLDToken public gldToken;
   address payable public wallet; // tokens seller
   address public owner;
-  uint public startingPrice; // starting price --> how much in total that was planned to earn
+  uint public startingTokenPrice;
+  uint public maxTokensSold;
   uint public priceFactor; // decrease rate
   uint public startBlock;
   uint public startTime;
   uint public endTime;
-  uint public totalReceived;
+  uint public totalReceived;//this is wei
   uint public finalPrice;
   mapping (address => uint) public bids;
   Stages public stage; //current stage
@@ -61,25 +62,26 @@ contract DutchAuction {
   modifier timedTransitions() {
       if (stage == Stages.AuctionStarted && calcTokenPrice() <= calcStopPrice())
           finalizeAuction();
-      if (stage == Stages.AuctionEnded && now > endTime + WAITING_PERIOD)
-          stage = Stages.TradingStarted;
+    //   if (stage == Stages.AuctionEnded && now > endTime + WAITING_PERIOD)
+    //       stage = Stages.TradingStarted;
       _;
   }
 
   //functions
   /// @dev Contract constructor function sets owner.
   /// @param _wallet Gnosis GLDTokens wallet.
-  /// @param _startingPrice Auction starting price.
+  /// @param _startingTokenPrice Auction starting price.
   /// @param _priceFactor Auction price factor.
-  constructor(address payable _wallet, uint _startingPrice, uint _priceFactor)
+  constructor(address payable _wallet, uint _numOfTokens, uint _startingTokenPrice, uint _priceFactor)
       public
   {
-      if (_wallet == address(0x0) || _startingPrice == 0 || _priceFactor == 0)
+      if (_wallet == address(0x0) || _numOfTokens == 0 ||_startingTokenPrice == 0 || _priceFactor == 0)
           // Arguments are null.
           revert("constructor args null");
       owner = msg.sender;
       wallet = _wallet;
-      startingPrice = _startingPrice;
+      maxTokensSold = _numOfTokens *10**18;
+      startingTokenPrice = _startingTokenPrice;
       priceFactor = _priceFactor;
       stage = Stages.AuctionDeployed;
   }
@@ -96,7 +98,7 @@ contract DutchAuction {
           revert("gold token address is null");
       gldToken = GLDToken(_gldToken);
       // Validate token balance
-      if (gldToken.balanceOf(wallet) != MAX_TOKENS_SOLD) 
+      if (gldToken.balanceOf(address(this)) != maxTokensSold) 
           revert("invalid token balance");
       stage = Stages.AuctionSetUp;
   }
@@ -114,22 +116,22 @@ contract DutchAuction {
   }
 
   /// @dev Changes auction starting price and start price factor before auction is started.
-  /// @param _startingPrice Updated auction startingPrice.
+  /// @param _startingTokenPrice Updated auction startingTokenPrice.
   /// @param _priceFactor Updated start price factor.
-  function changeSettings(uint _startingPrice, uint _priceFactor)
+  function changeSettings(uint _startingTokenPrice, uint _priceFactor)
       public
       isWallet
       atStage(Stages.AuctionSetUp)
   {
-      startingPrice = _startingPrice;
+      startingTokenPrice = _startingTokenPrice;
       priceFactor = _priceFactor;
   }
 
   /// @dev Calculates current token price.
   /// @return Returns token price.
-  function calcCurrentTokenPrice()
+  function calcCurrentTokenPrice() // to display on screen
+      view
       public
-      timedTransitions
       returns (uint)
   {
       if (stage == Stages.AuctionEnded || stage == Stages.TradingStarted)
@@ -162,22 +164,19 @@ contract DutchAuction {
           receiver = msg.sender;
       amount = msg.value;
       // Prevent that more than 90% of tokens are sold. Only relevant if cap not reached.
-      uint maxWei = (MAX_TOKENS_SOLD / 10**18) * calcTokenPrice() - totalReceived; // calculate how much is need to earn
-      uint maxWeiBasedOnTotalReceived = startingPrice - totalReceived; // if total received is not zero --> got previous bids
-      if (maxWeiBasedOnTotalReceived < maxWei)
-          maxWei = maxWeiBasedOnTotalReceived;
+      uint maxWei = (maxTokensSold/(10**18)) * calcTokenPrice()*10**18 - totalReceived; // calculate how much is need to earn
       // Only invest maximum possible amount.
       if (amount > maxWei) {
           amount = maxWei;
           // Send change back to receiver address. In case of a ShapeShift bid the user receives the change back directly.
           if (!receiver.send(msg.value - amount))
               // Sending failed
-              revert("sending failed1");
+              revert("sending change back failed");
       }
       // Forward funding to ether wallet
       if (amount == 0 || !wallet.send(amount))
           // No amount sent or sending failed
-          revert("sending failed2");
+          revert("sending to wallet failed");
       bids[receiver] += amount; // remember the claim of each participant
       totalReceived += amount; // amount of money earned
       if (maxWei == amount)
@@ -196,9 +195,9 @@ contract DutchAuction {
   {
       if (receiver == address(0x0))
           receiver = msg.sender;
-      uint tokenCount = bids[receiver] * 10**18 / finalPrice;
+      uint tokenCount = bids[receiver]/(finalPrice* 10**18);
       bids[receiver] = 0;
-      gldToken.transfer(receiver, tokenCount);
+      gldToken.transfer(receiver, tokenCount*10**18);
   }
 
   /// @dev Calculates stop price.
@@ -208,7 +207,10 @@ contract DutchAuction {
       public
       returns (uint)
   {
-      return totalReceived * 10**18 / MAX_TOKENS_SOLD + 1;
+      if((WAITING_PERIOD/60)*priceFactor >= startingTokenPrice){
+          return 1;
+      }
+      return startingTokenPrice - (WAITING_PERIOD/60)*priceFactor;
   }
 
   /// @dev Calculates token price.
@@ -219,8 +221,13 @@ contract DutchAuction {
       returns (uint)
   {
       //return priceFactor * 10**18 / (block.number - startBlock + 7500) + 1;
-      return startingPrice - priceFactor /**10**18 +1*/; 
-      //return startingPrice;
+      //return startingTokenPrice - priceFactor*((now - startTime)/60) /**10**18 +1*/; 
+      //return startingTokenPrice;
+      uint tempMinusPrice =  priceFactor * ((now - startTime)/60);
+      if(tempMinusPrice >= startingTokenPrice){
+          return 1;
+      }
+      return startingTokenPrice - tempMinusPrice;
   }
   
   // private function
@@ -228,20 +235,16 @@ contract DutchAuction {
       private
   {
       stage = Stages.AuctionEnded;
-      if (totalReceived == startingPrice) // if total money received is still at the starting price
-          finalPrice = calcTokenPrice();
-      else
+      if(calcTokenPrice() <= calcStopPrice()){
           finalPrice = calcStopPrice();
-      uint soldTokens = totalReceived * 10**18 / finalPrice;
+      }else{
+          finalPrice = calcTokenPrice(); 
+      }
+      
+      uint soldTokens = totalReceived/(finalPrice* 10**18);
       // Auction contract transfers all unsold tokens to Gnosis inventory multisig
-      gldToken.transfer(wallet, MAX_TOKENS_SOLD - soldTokens);
-      endTime = now;
-  }
-
-  function toViewablePrice(uint longPrice)
-      public
-      returns(uint viewablePrice)
-  {
-    viewablePrice = longPrice / 1*10**18; // not accurate
+      gldToken.transfer(wallet, maxTokensSold - soldTokens*10**18);
+      //endTime = now;
+      stage = Stages.TradingStarted;
   }
 }
