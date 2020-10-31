@@ -12,9 +12,9 @@ var CanvasJS = CanvasJSReact.CanvasJS;
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 // var dps = [{x: 1, y: 10}, {x: 2, y: 13}, {x: 3, y: 18}, {x: 4, y: 20}, {x: 5, y: 17},{x: 6, y: 10}, {x: 7, y: 13}, {x: 8, y: 18}, {x: 9, y: 20}, {x: 10, y: 17}]; 
 // var xVal = dps.length + 1;
-var dps = [{x:0, y:50}]
+var dps = [{ x: 0, y: 10 }]
 var xVal = 0;
-var yVal = 50;
+var yVal = 0;
 // const startingMin = 20
 // let time = startingMin * 60
 // setInterval(startTimer(this.state.time), 1000)
@@ -28,6 +28,7 @@ class AuctionApp extends React.Component {
     }
     // this.updateChart();
     this.OnClickHandler = this.OnClickHandler.bind(this)
+    this.updateChart = this.updateChart.bind(this)
   }
 
   timer() {
@@ -49,12 +50,24 @@ class AuctionApp extends React.Component {
     clearInterval(this.chartInterval);
   }
 
+  calcExpectedTokens(){
+    var amountBided = 0; // to find a way for user's input to be here
+    this.state.tokens = amountBided / this.props.getPrice;
+  }
+
 
   //comment out this method if dw the auto generated dynamic graph
   updateChart() {
+    this.props.getPrice();
     //add values to the dateset at runtime
+    if(this.props.current_price == ""){
+      return;
+    }
     xVal++;
-    yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+    //yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+    yVal = parseInt(this.props.current_price);
+    console.log("y: " + yVal);
+    console.log(dps);
     dps.push({ x: xVal, y: yVal });
 
     //comment this if want to show the entire graph
@@ -76,10 +89,10 @@ class AuctionApp extends React.Component {
 
 
 
-  OnClickHandler(){
+  OnClickHandler() {
     console.log("clicked")
 
-}
+  }
   // componentWillUnmount(){
   //     stopTimer();
   // }
@@ -105,8 +118,8 @@ class AuctionApp extends React.Component {
         <div id="count_down"></div>
         <div id="end_msg"></div>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
-        <h3>Current Bidding Price: {yVal}</h3>
-        <h3>Tokens remaining: {this.props.remaining}</h3>
+        <h3>Current Bidding Price: {this.props.current_price}</h3>
+        <h3>Tokens remaining: {this.props.maxTokens - this.state.tokens}</h3>
 
         {/* {this.state.time} */}
         {(() => {
@@ -127,14 +140,14 @@ class AuctionApp extends React.Component {
             showButton     
             } */}
         })()}
-        {this.state.time != 0&& <BidButton />}
+        {this.state.time != 0 && <BidButton />}
         <h3>Expected to recieve: >= {this.state.tokens} Tokens</h3>
         {/* <div>
               <input type = 'text' required></input>
               <button onClick={this.OnClickHandler()}>Submit</button>
               {/* <input type = 'submit' value='Submit'></input> */}
-  
-        {/* </div> */} 
+
+        {/* </div> */}
         {/* {this.state.time != 0 && <BidButton />} */}
         {/* {startTimer()} */}
         {/* {setInterval(startTimer(this.state.time), 1000)} */}

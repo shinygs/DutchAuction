@@ -11,7 +11,12 @@ export const DUTCH_AUCTION_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "_startingPrice",
+        "name": "_numOfTokens",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_startingTokenPrice",
         "type": "uint256"
       },
       {
@@ -41,20 +46,6 @@ export const DUTCH_AUCTION_ABI = [
     ],
     "name": "BidSubmission",
     "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_TOKENS_SOLD",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
   },
   {
     "inputs": [],
@@ -134,6 +125,20 @@ export const DUTCH_AUCTION_ABI = [
   },
   {
     "inputs": [],
+    "name": "maxTokensSold",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -204,7 +209,7 @@ export const DUTCH_AUCTION_ABI = [
   },
   {
     "inputs": [],
-    "name": "startingPrice",
+    "name": "startingTokenPrice",
     "outputs": [
       {
         "internalType": "uint256",
@@ -268,7 +273,7 @@ export const DUTCH_AUCTION_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_startingPrice",
+        "name": "_startingTokenPrice",
         "type": "uint256"
       },
       {
@@ -292,8 +297,9 @@ export const DUTCH_AUCTION_ABI = [
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
