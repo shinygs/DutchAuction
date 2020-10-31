@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import Navbar from './Navbar'
 import CanvasJSReact from './canvasjs.react';
+import BidButton from './BidButton.js'
 
 
 // var React = require('react');
@@ -22,9 +23,11 @@ class AuctionApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      time: 16 //time is 15sec for testing (can change later)
+      time: 16, //time is 15sec for testing (can change later)
+      eth: 0 //for testing
     }
     // this.updateChart();
+    this.OnClickHandler = this.OnClickHandler.bind(this)
   }
 
   timer() {
@@ -73,6 +76,10 @@ class AuctionApp extends React.Component {
 
 
 
+  OnClickHandler(){
+    console.log("clicked")
+
+}
   // componentWillUnmount(){
   //     stopTimer();
   // }
@@ -100,6 +107,7 @@ class AuctionApp extends React.Component {
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
         <h3>Current Bidding Price: {this.props.current_price}</h3>
         <h3>Tokens remaining: {this.props.remaining}</h3>
+
         {/* {this.state.time} */}
         {(() => {
           if (document.getElementById("count_down") == null) {
@@ -115,7 +123,19 @@ class AuctionApp extends React.Component {
           if (this.state.time == 0) {
             document.getElementById("end_msg").innerHTML = "Auction has ended"
           }
+          {/* else{
+            showButton     
+            } */}
         })()}
+        {this.state.time != 0&& <BidButton />}
+        <h3>Expexted to recieve: {this.state.eth} eth</h3>
+        {/* <div>
+              <input type = 'text' required></input>
+              <button onClick={this.OnClickHandler()}>Submit</button>
+              {/* <input type = 'submit' value='Submit'></input> */}
+  
+        {/* </div> */} 
+        {/* {this.state.time != 0 && <BidButton />} */}
         {/* {startTimer()} */}
         {/* {setInterval(startTimer(this.state.time), 1000)} */}
       </div>
