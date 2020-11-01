@@ -19,9 +19,11 @@ class SelectSession extends React.Component{
     // }
     render(){
         var currentdate = new Date();
+        let hours = currentdate.getHours();
+        hours = hours < 10 ? '0' + hours : hours;
         let minutes = currentdate.getMinutes();
         minutes = minutes < 10 ? '0' + minutes : minutes;
-        let current_time =  currentdate.getHours() + ":"  + minutes
+        let current_time =  hours + ":"  + minutes
         return(
             <div>
               <h2 id='page_title'>Select a Session</h2>
