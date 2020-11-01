@@ -8,7 +8,7 @@ import SelectSession from "./SelectSession"
 import Button from 'react-bootstrap/Button';
 // import { Link } from 'react-router';
 import AuctionApp from "./AuctionApp";
-import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config'
+import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
 
 import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
 
@@ -27,13 +27,14 @@ class App extends React.Component {
       loading: true,
       set_up_string: '',
       showClaimTokens: false,
-      auctionStarted: false
+      auctionStarted: false,
+      maxTokens: "0"
     };
     this.getPrice = this.getPrice.bind(this)
     this.setUp = this.setUp.bind(this)
     this.startAuction = this.startAuction.bind(this)
-    this.bid = this.bid.bind(this)
-    this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
+    // this.bid = this.bid.bind(this)
+    // this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     console.log("end of constructor")
@@ -76,6 +77,7 @@ class App extends React.Component {
       window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
     }
   }
+
   async getPrice() {
     console.log(this.state.dutchAuction)
     let current_price = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call()
@@ -96,20 +98,31 @@ class App extends React.Component {
   }
 
   async startAuction() {
-    await this.state.dutchAuction.methods.startAuction().send({ from: this.state.account })
+    this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.account })
+
+    // if(this.state.auctionStarted == false){
+    //   this.setState = {auctionStarted : true}
+    // }
+
+    console.log("this.state.auctionStarted: " + this.state.auctionStarted)
+
+    if (this.state.auctionStarted) { //change page
+      this.setState({ renderSession: !this.state.renderSession })
+      console.log("hello")
+    }
+
     console.log("started auction")
-    this.state.auctionStarted = true
   }
 
-  async getMaxNumOfTokens(){
-    let maxTokens = await this.state.dutchAuction.maxTokensSold;
-    console.log("maxTokens: " + maxTokens);
-  }
+  // async getMaxNumOfTokens() {
+  //   this.state.maxTokens = await this.state.dutchAuction.maxTokensSold;
+  //   console.log("maxTokens: " + this.state.maxTokens);
+  // }
 
-  async bid() {
-    await this.state.dutchAuction.methods.bid().send({ from: this.state.account })
-    console.log("bidded")
-  }
+  // async bid(valueETH) {
+  //   await this.state.dutchAuction.methods.bid(this.state.account).send({ from: this.state.account, value: valueETH+"000000000000000000" })
+  //   console.log("bidded")
+  // }
 
   togglePopup() {
     this.setState({
@@ -118,22 +131,26 @@ class App extends React.Component {
   }
 
   clickHandler() {
-    this.setState({ renderSession: !this.state.renderSession })
-
-
-    console.log("hello")
+    this.startAuction()
     if (!this.state.renderSession) {
-
       // this.setState({showPopup: !this.state.showPopup})
       this.togglePopup()
       this.setState({
         showClaimTokens: !this.state.showClaimTokens
       });
     }
-    else {
-      this.startAuction()
-    }
-
+    // console.log("this.state.auctionStarted: " + this.state.auctionStarted)
+    // if(this.state.auctionStarted){ //change page
+    //   this.setState({ renderSession: !this.state.renderSession })
+    //   console.log("hello")
+    //   if (!this.state.renderSession) {
+    //     // this.setState({showPopup: !this.state.showPopup})
+    //     this.togglePopup()
+    //     this.setState({
+    //       showClaimTokens: !this.state.showClaimTokens
+    //     });
+    //   }
+    // }
     //this.startAuction()
     // else{
     //   ReactDOM.unmountComponentAtNode(document.getElementById('count_down'))
@@ -189,8 +206,8 @@ class App extends React.Component {
             <AuctionApp
               getPrice={this.getPrice}
               bid={this.bid}
-              maxTokens={this.maxTokens}
-              auctionStarted={this.auctionStarted}
+              maxTokens={this.state.maxTokens}
+              auctionStarted={this.state.auctionStarted}
               current_price={this.state.current_price}
               remaining={this.state.tokens_remaining} />}
         {/* {this.state.renderSession?<SelectSession /> : null} */}
@@ -200,9 +217,6 @@ class App extends React.Component {
 
         <button onClick={
           this.clickHandler.bind(this)
-          //if(auctionStarted){
-            //go to AuctionApp
-          //}
         }>
           {button_text}
         </button>

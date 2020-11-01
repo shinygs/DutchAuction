@@ -3,7 +3,8 @@ import ReactDOM from "react-dom";
 import Navbar from './Navbar'
 import CanvasJSReact from './canvasjs.react';
 import BidButton from './BidButton.js'
-
+import Web3 from "web3";
+import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
 
 // var React = require('react');
 // var Component = React.Component;
@@ -23,12 +24,17 @@ class AuctionApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      time: 16, //time is 15sec for testing (can change later)
-      tokens: 0 //for testing
+      time: 20 * 60, //time is 15sec for testing (can change later) // now is 20 minutes
+      tokens: 0, //for testing
+      input: ""
     }
     // this.updateChart();
     this.OnClickHandler = this.OnClickHandler.bind(this)
     this.updateChart = this.updateChart.bind(this)
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.bid = this.bid.bind(this)
+    this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
   }
 
   timer() {
@@ -50,7 +56,51 @@ class AuctionApp extends React.Component {
     clearInterval(this.chartInterval);
   }
 
-  calcExpectedTokens(){
+  async componentWillMount() {
+    await this.loadWeb3()
+    await this.loadBlockchainData()
+  }
+
+  async loadBlockchainData() {
+    const web3 = window.web3
+    this.setState({ web3 })
+    const accounts = await web3.eth.getAccounts()
+    console.log(accounts)
+    this.setState({ account: accounts[0] })
+    const dutchAuction = new web3.eth.Contract(DUTCH_AUCTION_ABI, DUTCH_AUCTION_ADDRESS)
+    this.setState({ dutchAuction })
+    console.log("dutchau smart contract")
+    console.log(dutchAuction)
+    const networkId = await web3.eth.net.getId()
+    console.log(networkId)
+    this.setState({ loading: false })
+    console.log("End of Load Data")
+  }
+
+  async loadWeb3() {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum)
+      await window.ethereum.enable()
+    }
+    else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider)
+    }
+    else {
+      window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
+    }
+  }
+
+  async getMaxNumOfTokens() {
+    this.state.maxTokens = await this.state.dutchAuction.maxTokensSold;
+    console.log("maxTokens: " + this.state.maxTokens);
+  }
+
+  async bid(valueETH) {
+    await this.state.dutchAuction.methods.bid(this.state.account).send({ from: this.state.account, value: valueETH+"000000000000000000" })
+    console.log("bidded")
+  }
+
+  calcExpectedTokens() {
     var amountBided = 0; // to find a way for user's input to be here
     this.state.tokens = amountBided / this.props.getPrice;
   }
@@ -60,7 +110,7 @@ class AuctionApp extends React.Component {
   updateChart() {
     this.props.getPrice();
     //add values to the dateset at runtime
-    if(this.props.current_price == ""){
+    if (this.props.current_price == "") {
       return;
     }
     xVal++;
@@ -95,7 +145,17 @@ class AuctionApp extends React.Component {
   }
   // componentWillUnmount(){
   //     stopTimer();
-  // }
+  //}
+
+  handleChange(event) {
+    this.setState({ input: event.target.value })
+  }
+
+  handleSubmit(event) {
+    alert('bidding this amount of ETH: ' + this.state.input);
+    this.bid(this.state.input);
+    event.preventDefault();
+  }
 
 
   render() {
@@ -140,7 +200,16 @@ class AuctionApp extends React.Component {
             showButton     
             } */}
         })()}
-        {this.state.time != 0 && <BidButton />}
+        {this.state.time != 0 /*&& <BidButton bid={this.props.bid} />*/}
+        <div id='bidButton'>
+          <form onSubmit={this.handleSubmit}>
+            <label>
+              Enter your bidding amount in ETH:
+                    <input type='text' value={this.state.input} onChange={this.handleChange} placeholder='Enter Amount' required></input>
+            </label>
+            <input type="submit" value="Submit" />
+          </form>
+        </div>
         <h3>Expected to recieve: >= {this.state.tokens} Tokens</h3>
         {/* <div>
               <input type = 'text' required></input>
