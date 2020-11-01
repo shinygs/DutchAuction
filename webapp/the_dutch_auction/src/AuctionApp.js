@@ -23,7 +23,7 @@ class AuctionApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      time: 16, //time is 15sec for testing (can change later)
+      time: 1200, //20min
       eth: 0 //for testing
       //tokenPrice: 50
     }
@@ -52,18 +52,30 @@ class AuctionApp extends React.Component {
 
 
   //comment out this method if dw the auto generated dynamic graph
-  updateChart() {
+  updateXAxis() {
     //add values to the dateset at runtime
     xVal++;
-    yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+  }
+
+  updateYAxis() {
+    // if (Number.isInteger(xVal/20)) {
+      if (Number.isInteger((xVal-1)/60) && xVal-1 != 0) {
+      yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+    }
+  }
+
+  updateChart() {
+    this.updateXAxis();
+    this.updateYAxis();
     dps.push({ x: xVal, y: yVal });
+  }
 
     //comment this if want to show the entire graph
     // if (dps.length >  10 ) {
     // 	dps.shift();
     // }
     // this.chart.render();
-  }
+  
   // componentDidMount() {
   //     console.log("mounted")
   //     // var fiveMinutes = 60 * 5,
