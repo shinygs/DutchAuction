@@ -5,7 +5,11 @@ import CanvasJSReact from './canvasjs.react';
 import BidButton from './BidButton.js'
 import Web3 from "web3";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
-import Button from "react-bootstrap/esm/Button";
+import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
+import FormGroup from "react-bootstrap/FormGroup";
+import Badge from "react-bootstrap/Badge";
+import Form from "react-bootstrap/Form";
 
 // var React = require('react');
 // var Component = React.Component;
@@ -36,6 +40,7 @@ class AuctionApp extends React.Component {
     this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
     this.calcRemainTokens = this.calcRemainTokens.bind(this);
     this.calcExpectedTokens = this.calcExpectedTokens.bind(this);
+    // this.updateStageInAA = this.updateStageInAA.bind(this);
   }
 
   timer() {
@@ -50,14 +55,15 @@ class AuctionApp extends React.Component {
   componentDidMount() {
     this.intervalId = setInterval(this.timer.bind(this), 1000);
     this.chartInterval = setInterval(this.updateChart.bind(this), 1000);
-    this.remainTokenInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
-    this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000)
+    this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000);
+    this.calcRemainTokensInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
   }
 
   componentWillUnmount() {
     clearInterval(this.intervalId);
     clearInterval(this.chartInterval);
-    clearInterval(this.remainTokenInterval);
+    clearInterval(this.userExpectedTokenInterval);
+    clearInterval(this.calcRemainTokensInterval);
   }
 
   //comment out this method if dw the auto generated dynamic graph
@@ -100,10 +106,16 @@ class AuctionApp extends React.Component {
   //     this.setState({time: 1200})
   //     startTimer(this.state.time);
 
+  // updateStageInAA(){
+  //   this.props.updateStage();
+  // }
+
   calcExpectedTokens() { //not sure how to call
-    var temp = parseInt(this.state.bidAmountInput) / parseInt(this.props.current_price);
+    console.log("Price now: " + this.props.price);
+    console.log("Bid Amount: " + this.state.bidAmountInput);
+    var temp = parseFloat(this.state.bidAmountInput) / parseInt(this.props.current_price);
     console.log("Expected tokens: " + temp);
-    if (parseInt(temp)) {
+    if (parseFloat(temp).isInteger) {
       this.setState({ userTokens: temp })
     }
   }
@@ -143,27 +155,23 @@ class AuctionApp extends React.Component {
       }]
     }
 
+    const alignmentStyle = {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center"
+    };
+
     return (
       <div >
-        <div id="count_down"></div>
-        <div id="end_msg"></div>
-        <p>{this.props.currentStage}</p>
-        <button onClick={this.props.onClickUpdateStage}>Check Auction Status</button>
-        <h2>Tokens On Sale: {this.state.remainingTokens}</h2>
-        <div className='chartContainer'>
-        <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
+        {/* <div id="count_down"></div>
+        <div id="end_msg"></div> */}
+        <div style={alignmentStyle}>
+          <Alert variant="info">Auction Status : {this.props.currentStage}</Alert>
         </div>
-        <div className="bidding_info">
-        <h3>Current Bidding Price: {this.props.current_price}</h3>
-        <br></br>
-        <h3>Tokens remaining: {this.state.remainingTokens}</h3>
-        <br></br>
-        <div>
-        <button onClick={this.calcRemainTokens}>Calculate Remaining Tokens On Sale</button>
+        <div style={alignmentStyle}>
+          <h1 id="end_msg"></h1>
+          <h1 id="count_down"> 20 : 00</h1>
         </div>
-        <br></br>
-
-        {/* {this.state.time} */}
         {(() => {
           if (document.getElementById("count_down") == null) {
             console.log("this is null")
@@ -175,29 +183,52 @@ class AuctionApp extends React.Component {
           if (this.state.time == 0) {
             document.getElementById("end_msg").innerHTML = "Auction has ended"
           }
-          {/* else{
-            showButton     
-            } */}
         })()}
-        {this.state.time != 0 /*&& <BidButton bid={this.props.bid} />*/}
-        <div id='bidButton'>
-          <form onSubmit={this.handleBidInputSubmit}>
-            <label>
-              Enter your bidding amount in ETH:
-              <input type='number'
-                value={this.state.bidAmountInput}
-                onChange={this.handleBidInputChange}
-                placeholder='Enter Amount'
-                min="0"
-                required>
-              </input>
-            </label>
-            <input type="submit" value="Submit" />
-          </form>
+        <div className='chartContainer'>
+          <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
         </div>
-        <br></br>
-        <h3>Expected to recieve: >= {this.props.currentUserTokens} Tokens</h3>
-        <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
+        <div className="bidding_info">
+          <FormGroup>
+            <div class="mb-2 bg-white border border-dark rounded">
+              <Alert variant="primary" class="font-weight-bold">This Auction's supply of Gold Tokens:{' '}
+                <Badge pill variant="danger">{this.state.remainingTokens} GLD</Badge>
+              </Alert>
+              <Alert variant="white">Current Price Per Token:{' '}
+                <Badge pill variant="dark">{this.props.current_price} ETH</Badge>
+              </Alert>
+              <Alert variant="white">Number of Gold Tokens Left:{' '}
+                <Badge pill variant="dark">{this.state.remainingTokens} GLD</Badge>
+              </Alert>
+            </div>
+          </FormGroup>
+          <FormGroup>
+            <div class="p-3 mb-2 bg-white border border-primary rounded">
+              <div class="form-group">
+                <Form.Label>Enter amount to Bid in ETH:</Form.Label>
+                <Form.Control type='number' value={this.state.bidAmountInput} onChange={this.handleBidInputChange} placeholder='Enter Amount In ETH' required></Form.Control>
+                <Form.Text className="text-muted">Change will be provided.</Form.Text>
+              </div>
+              <Button type="submit" onClick={this.handleBidInputSubmit} variant="primary">Bid!</Button>
+            </div>
+          </FormGroup>
+          {/* <div id='bidButton'>
+            <form onSubmit={this.handleBidInputSubmit}>
+              <label>
+                Enter your bidding amount in ETH:
+              <input type='number'
+                  value={this.state.bidAmountInput}
+                  onChange={this.handleBidInputChange}
+                  placeholder='Enter Amount'
+                  min="0"
+                  required>
+                </input>
+              </label>
+              <input type="submit" value="Submit" />
+            </form>
+          </div> */}
+          <br></br>
+          <h3>Expected to recieve: >= {this.props.currentUserTokens} Tokens</h3>
+          <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
         </div>
         {/* <div>
               <input type = 'text' required></input>
@@ -208,7 +239,7 @@ class AuctionApp extends React.Component {
         {/* {this.state.time != 0 && <BidButton />} */}
         {/* {startTimer()} */}
         {/* {setInterval(startTimer(this.state.time), 1000)} */}
-      </div>
+      </div >
 
     );
   }

@@ -9,8 +9,6 @@ class Navbar extends Component {
       <nav className = 'App-header'>
         <img src={bid_icon} width="50" height="50" className="d-inline-block align-top" alt="" />
         &nbsp; Thy Dutch Auction
-
-
         <ul className="navbar-nav px-3">
             <small id="account">Account: {this.props.account}</small>
         </ul>

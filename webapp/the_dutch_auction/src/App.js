@@ -4,11 +4,14 @@ import "./App.css";
 import Web3 from "web3";
 import Navbar from './Navbar'
 import Popup from './Popup'
-import SelectSession from "./SelectSession"
-import Button from 'react-bootstrap/Button'
+// import SelectSession from "./SelectSession"
+import Button from 'react-bootstrap/Button';
 import AuctionApp from "./AuctionApp";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
-
+import FormGroup from "react-bootstrap/FormGroup";
+import Spinner from "react-bootstrap/Spinner";
+import Badge from "react-bootstrap/Badge";
+import Alert from "react-bootstrap/Alert";
 
 class App extends React.Component {
   constructor(props) {
@@ -17,29 +20,37 @@ class App extends React.Component {
       currentAccount: '0x0',
       renderSession: true,
       showClearancePricePopUp: false,
-      current_price: "",
+      current_price: "0",
       tokens_remaining: "0",
       loading: true,
       set_up_string: '',
       showClaimTokens: false,
       auctionStarted: false,
       maxTokens: "0",
-      currentStage: "No Status"
+      currentStage: "Loading status..."
     };
     this.getPrice = this.getPrice.bind(this)
     this.setUp = this.setUp.bind(this)
     this.startAuction = this.startAuction.bind(this)
     this.bid = this.bid.bind(this)
     this.updateStage = this.updateStage.bind(this)
-    // this.getStage = this.getStage.bind(this)
     this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.clickHandler = this.clickHandler.bind(this);
     this.clickClaimTokenHandler = this.clickClaimTokenHandler.bind(this);
     this.claimTokens = this.claimTokens.bind(this);
-    this.onClickUpdateStage = this.onClickUpdateStage.bind(this);
     console.log("end of constructor")
+  }
+
+  componentDidMount() {
+    //updates auction status every second
+    this.updateStage = setInterval(this.updateStage.bind(this), 1000)
+  }
+
+  componentWillUnmount() {
+    // stop updating auction status
+    // clearInterval = setInterval(this.updateStage);
   }
 
   async componentWillMount() {
@@ -99,32 +110,20 @@ class App extends React.Component {
 
   async updateStage() { //updates the stage
     var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens", "Auction not deployed"]
+    if (this.state.dutchAuction == undefined) {
+      return;
+    }
     let stageIndex = await this.state.dutchAuction.methods.updateStage().call()
-    // console.log("updateStage called " + stageIndex)
     console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
-    if (stageIndex != "undefined") {
-      console.log("here")
+    if (stageIndex != undefined) {
+      console.log("if statement")
       this.setState({ currentStage: stages[parseInt(stageIndex)] })
     } else {
-      console.log("hererere")
+      console.log("else statement")
       this.setState({ currentStage: "No Status" })
     }
     console.log("getStage: " + this.state.currentStage)
   }
-
-  // async getStage() { // not used
-  //   let stageIndex = await this.state.dutchAuction.stage
-  //   var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens"]
-  //   console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
-  //   if (stages[parseInt(stageIndex) != "undefined"]) {
-  //     console.log("here")
-  //     this.setState({ currentStage: stages[parseInt(stageIndex)] })
-  //   }else{
-  //     console.log("hererere")
-  //     this.setState({currentStage: "No Status"})
-  //   }
-  //   console.log("getStage: " + this.state.currentStage)
-  // }
 
   async setUp() {
     console.log("set up")
@@ -153,7 +152,7 @@ class App extends React.Component {
 
   async bid(bidAmountInput) { //bidding function
     console.log("Amount bidded : " + bidAmountInput);
-    var valueETHint = parseInt(bidAmountInput);
+    var valueETHint = parseFloat(bidAmountInput);
     console.log("Amount bidded2 : " + valueETHint)
     await this.state.dutchAuction.methods.bid(this.state.currentAccount).send({ from: this.state.currentAccount, value: valueETHint * 10 ** 18 })
     console.log("bidded")
@@ -162,10 +161,6 @@ class App extends React.Component {
   async claimTokens() { //claims tokens
     await this.state.dutchAuction.methods.claimTokens(this.state.currentAccount).send({ from: this.state.currentAccount })
     console.log("claimedTokens")
-  }
-
-  onClickUpdateStage() { //onClickHandler for update stage
-    this.updateStage()
   }
 
   togglePopup() {
@@ -180,8 +175,8 @@ class App extends React.Component {
     event.preventDefault();
   }
 
-  endHandler(){
-    this.setState({renderSession: !this.state.renderSession})
+  endHandler() {
+    this.setState({ renderSession: !this.state.renderSession })
   }
 
   clickHandler() { //click handler for start auction button
@@ -240,99 +235,115 @@ class App extends React.Component {
     // let current_time =  currentdate.getHours() + ":"  + currentdate.getMinutes()
     return (
       <div className='body_with_nav'>
-      
         <Navbar account={this.state.currentAccount} />
         <div className='body'>
-        {/* <h2 id='page_title'>Select a Session</h2>
+          {/* <h2 id='page_title'>Select a Session</h2>
         <div className='container'>
           <div className='card'>
             <div className="detail_container">
               <Session session_time = {current_time}/>
               {/* <h4><b>{Session.state.session_date}</b></h4>
               <p>Architect & Engineer</p> */}
-        {/* <a href="/auction.html" className="btn btn-primary stretched-link">Join Auction</a> */}
-        {/* <Link to="/AuctionApp">
+          {/* <a href="/auction.html" className="btn btn-primary stretched-link">Join Auction</a> */}
+          {/* <Link to="/AuctionApp">
               <button>Start Auction</button>
               
               </Link> */}
-        {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
+          {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
 
-        {this.state.loading ?
-          <div id="loader" className="text-center">
-            <p className="text-center">Loading...</p>
-          </div>
-          :
-          this.state.renderSession ?
+          {this.state.loading ?
             <div>
-              <SelectSession />
-              <form onSubmit={this.handleSubmit}>
-                <label className='tokenAddress'>
-                  Set up auction, put GLDToken address:
-                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} />
-                </label>
-                <input type="submit" value="Submit" />
-              </form>
-              <p className='status'>{this.state.currentStage}</p>
               <div style={alignmentStyle}>
-                <Button variant="secondary" style={buttonStyle} onClick={this.onClickUpdateStage}>Check Auction Status</Button>
-                <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>Start Auction</Button>
-                <Button variant="secondary" style={buttonStyle} onClick={this.clickClaimTokenHandler}> Claim My Tokens! </Button>
+                <h4 style={{ marginTop: 30 }}>The sun is rising... <br />Please open Ganache</h4>
               </div>
-            </div >
-            :
-            <div>
-            <AuctionApp
-              getPrice={this.getPrice}
-              bid={this.bid}
-              onClickUpdateStage={this.onClickUpdateStage}
-              getMaxNumOfTokens={this.getMaxNumOfTokens}
-
-              current_price={this.state.current_price}
-              currentStage={this.state.currentStage}
-              maxTokens={this.state.maxTokens}
-              tokens_remaining={this.state.tokens_remaining}
-            />
-                <div class="col text-center">
-                <Button variant="secondary" style={buttonStyle} onClick={()=>this.endHandler()}>End Auction</Button>
-               </div>
-            
+              <div style={alignmentStyle}>
+                <Spinner animation="grow" variant="warning" role="status" style={{ marginTop: 90 }}>
+                  <span className="sr-only">Loading...</span>
+                </Spinner>
+              </div>
             </div>
-        }
+            // <div id="loader" class="text-center">
+            //   <h1 class="text-center">Loading...</h1>
+            // </div>
+            :
+            this.state.renderSession ?
+              <div>
+                {/* <SelectSession /> */}
+                <FormGroup style={alignmentStyle}>
+                  <div class="w-50 p-3 mb-2 bg-white border border-primary rounded">
+                    <Alert variant="primary" class="text-dark font-weight-bold"><h3>Set up auction</h3></Alert>
+                    <div class="form-group">
+                      <label><h5>Enter Gold Token Address: </h5></label>
+                      <input type="text" class="form-control" value={this.state.set_up_string} onChange={this.handleChange} placeholder="Enter GLDToken address from Ganache"></input>
+                    </div>
+                    <Button type="submit" onClick={this.handleSubmit} variant="primary">Submit Address</Button>
+                  </div>
+                </FormGroup>
+                <div style={alignmentStyle}>
+                  <Alert variant="info" class="text-center font-weight-bold">Auction Status: {this.state.currentStage}</Alert>
+                </div>
+                <div style={alignmentStyle}>
+                  <Button variant="primary" style={buttonStyle} onClick={this.clickHandler}>Start Auction</Button>
+                  <Button variant="primary" style={buttonStyle} onClick={this.clickClaimTokenHandler}>Claim My Tokens!</Button>
+                </div>
+                <div>
+                  <Badge pill variant="info" style={{ marginLeft: 900 }}><i>by SLS</i></Badge>
+                </div>
+              </div >
+              :
+              <div>
+                <AuctionApp
+                  getPrice={this.getPrice}
+                  bid={this.bid}
+                  updateStage={this.updateStage}
+                  getMaxNumOfTokens={this.getMaxNumOfTokens}
 
-        {/* {this.state.renderSession?<SelectSession /> : null} */}
-        {/* <div id="count_down"></div> */}
-        {/* <SelectSession renderme={this.state.renderSession}/> */}
+                  current_price={this.state.current_price}
+                  currentStage={this.state.currentStage}
+                  maxTokens={this.state.maxTokens}
+                  tokens_remaining={this.state.tokens_remaining}
+                />
+                <div class="col text-center">
+                  <Button variant="secondary" style={buttonStyle} onClick={() => this.endHandler()}>End Auction</Button>
+                </div>
 
-        { this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-          {this.state.showClaimTokens ?
-            <Button
-              onClick={this.clickClaimTokenHandler}>
-              Claim My Tokens!
+              </div>
+          }
+
+          {/* {this.state.renderSession?<SelectSession /> : null} */}
+          {/* <div id="count_down"></div> */}
+          {/* <SelectSession renderme={this.state.renderSession}/> */}
+
+          {this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            {this.state.showClaimTokens ?
+              <Button
+                onClick={this.clickClaimTokenHandler}>
+                Claim My Tokens!
             </Button>
-            : null}
-        </div>
-        {/* console.log(this.state.renderSession) */}
-        { console.log(this.state.renderSession)}
-        {/* <AuctionApp /> */}
-        {/* <BrowserRouter history={history}>
+              : null}
+          </div>
+          {/* console.log(this.state.renderSession) */}
+          {console.log(this.state.renderSession)}
+          {/* <AuctionApp /> */}
+          {/* <BrowserRouter history={history}>
 
               
               <div>
                   {/* <NavLink to="/AuctionApp">Start Auction</NavLink> */}
 
 
-        {/* <Switch>
+          {/* <Switch>
                   <Route path="/SelectSession" component={SelectSession}/>
                   <Route path="/AuctionApp" component={AuctionApp}/>
                 </Switch>
               </div>  */}
-        {/* </BrowserRouter> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* </div> */}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#0099ff" fill-opacity="1" d="M0,128L48,160C96,192,192,256,288,250.7C384,245,480,171,576,165.3C672,160,768,224,864,218.7C960,213,1056,139,1152,122.7C1248,107,1344,149,1392,170.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
-      </div>
+          {/* </BrowserRouter> */}
+          {/* </div> */}
+          {/* </div> */}
+          {/* </div> */}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#0099ff" fill-opacity="1" d="M0,128L48,160C96,192,192,256,288,250.7C384,245,480,171,576,165.3C672,160,768,224,864,218.7C960,213,1056,139,1152,122.7C1248,107,1344,149,1392,170.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+        </div>
       </div >
     );
   }

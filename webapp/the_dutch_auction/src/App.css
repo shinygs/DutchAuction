@@ -99,11 +99,11 @@
   float: left;
 }
 .bidding_info {
+  margin-top: 10px;
   width: 50%;
   padding: 10px;
-  text-align: center;
+  text-align: left;
   float: right;
-
 }
 
 
