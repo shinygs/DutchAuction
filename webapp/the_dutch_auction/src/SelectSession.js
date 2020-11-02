@@ -1,6 +1,6 @@
 import React from "react";
 import ListGroup from 'react-bootstrap/ListGroup';
-import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
+
 
 
 // import { Button } from 'react-bootstrap';
@@ -31,15 +31,16 @@ class SelectSession extends React.Component {
         let future_time = futureHours + ":" + futureMinutes
         return (
             <div>
-                <h2 id='page_title'>Select a Session</h2>
-                <ListGroup>
-                    <ListGroup.Item action href="#link1">
+                <h2 className='page_title'>Select a Session</h2>
+                <ListGroup className='cardGrp'>
+                    <ListGroup.Item action href="#link1" className = "card list-group-item-text text-center" >
                         This session will start at {current_time}
                     </ListGroup.Item>
-                    <ListGroup.Item action href="#link2">
+                    <ListGroup.Item action href="#link2" className = "card list-group-item-text text-center">
                         This session will start at {future_time}
                     </ListGroup.Item>
                 </ListGroup>
+                <br></br>
                 {/* <div className='container'>
                     <div className='card'>
                         <div className="detail_container">

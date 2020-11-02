@@ -239,8 +239,10 @@ class App extends React.Component {
     // var currentdate = new Date();
     // let current_time =  currentdate.getHours() + ":"  + currentdate.getMinutes()
     return (
-      <div>
+      <div className='body_with_nav'>
+      
         <Navbar account={this.state.currentAccount} />
+        <div className='body'>
         {/* <h2 id='page_title'>Select a Session</h2>
         <div className='container'>
           <div className='card'>
@@ -264,13 +266,13 @@ class App extends React.Component {
             <div>
               <SelectSession />
               <form onSubmit={this.handleSubmit}>
-                <label>
+                <label className='tokenAddress'>
                   Set up auction, put GLDToken address:
                       <input type="text" value={this.state.set_up_string} onChange={this.handleChange} />
                 </label>
                 <input type="submit" value="Submit" />
               </form>
-              <p>{this.state.currentStage}</p>
+              <p className='status'>{this.state.currentStage}</p>
               <div style={alignmentStyle}>
                 <Button variant="secondary" style={buttonStyle} onClick={this.onClickUpdateStage}>Check Auction Status</Button>
                 <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>Start Auction</Button>
@@ -290,7 +292,10 @@ class App extends React.Component {
               maxTokens={this.state.maxTokens}
               tokens_remaining={this.state.tokens_remaining}
             />
-            <Button variant="secondary" style={buttonStyle} onClick={()=>this.endHandler()}>End Auction</Button>
+                <div class="col text-center">
+                <Button variant="secondary" style={buttonStyle} onClick={()=>this.endHandler()}>End Auction</Button>
+               </div>
+            
             </div>
         }
 
@@ -326,8 +331,8 @@ class App extends React.Component {
         {/* </div> */}
         {/* </div> */}
         {/* </div> */}
-
-
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#0099ff" fill-opacity="1" d="M0,128L48,160C96,192,192,256,288,250.7C384,245,480,171,576,165.3C672,160,768,224,864,218.7C960,213,1056,139,1152,122.7C1248,107,1344,149,1392,170.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
+      </div>
       </div >
     );
   }

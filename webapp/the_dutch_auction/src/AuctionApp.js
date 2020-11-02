@@ -144,16 +144,24 @@ class AuctionApp extends React.Component {
     }
 
     return (
-      <div>
+      <div >
         <div id="count_down"></div>
         <div id="end_msg"></div>
         <p>{this.props.currentStage}</p>
         <button onClick={this.props.onClickUpdateStage}>Check Auction Status</button>
         <h2>Tokens On Sale: {this.state.remainingTokens}</h2>
+        <div className='chartContainer'>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
+        </div>
+        <div className="bidding_info">
         <h3>Current Bidding Price: {this.props.current_price}</h3>
+        <br></br>
         <h3>Tokens remaining: {this.state.remainingTokens}</h3>
+        <br></br>
+        <div>
         <button onClick={this.calcRemainTokens}>Calculate Remaining Tokens On Sale</button>
+        </div>
+        <br></br>
 
         {/* {this.state.time} */}
         {(() => {
@@ -187,11 +195,10 @@ class AuctionApp extends React.Component {
             <input type="submit" value="Submit" />
           </form>
         </div>
-        <h3>
-          Expected to recieve: >= {this.props.currentUserTokens} Tokens
-        </h3>
+        <br></br>
+        <h3>Expected to recieve: >= {this.props.currentUserTokens} Tokens</h3>
         <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
-
+        </div>
         {/* <div>
               <input type = 'text' required></input>
               <button onClick={this.OnClickHandler()}>Submit</button>
