@@ -2,6 +2,7 @@ var React = require('react');
 var CanvasJS = require('./canvasjs.min');
 CanvasJS = CanvasJS.Chart ? CanvasJS : window.CanvasJS;
 
+//bidding price vs time graph
 class CanvasJSChart extends React.Component {
 	static _cjsContainerId = 0
 	constructor(props) {		

@@ -5,8 +5,10 @@ import ListGroup from 'react-bootstrap/ListGroup';
 
 // import { Button } from 'react-bootstrap';
 
-class SelectSession extends React.Component {
-    constructor(props) {
+//dutch auction session time
+class SelectSession extends React.Component{
+    constructor(props)
+    {
         super(props)
         // this.state = {
         //     renderme: false
@@ -17,8 +19,8 @@ class SelectSession extends React.Component {
     // clickHandler(){
     //     this.setState({renderme: false});
     // }
-
-    render() {
+    render(){
+        //display current time for the session start time
         var currentdate = new Date();
         let hours = currentdate.getHours();
         hours = hours < 10 ? '0' + hours : hours;

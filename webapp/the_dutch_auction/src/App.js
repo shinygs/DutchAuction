@@ -101,7 +101,8 @@ class App extends React.Component {
     }
   }
 
-  async getPrice() { //get latest price
+  //get current bidding price per token 
+  async getPrice() {
     console.log(this.state.dutchAuction)
     let current_price = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call()
     console.log("current price = " + current_price)
@@ -133,7 +134,8 @@ class App extends React.Component {
     //await this.state.dutchAuction.methods.setup("0x9D78534Dc5d9D7Ee844dCcB90c8616F6D15B6883").send({ from: this.state.currentAccount })
   }
 
-  async startAuction() { // starts auction
+  //starts the dutch auction session
+  async startAuction() { 
     // this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
     this.state.auctionStarted = true
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
@@ -229,6 +231,7 @@ class App extends React.Component {
     const buttonStyle = {
       margin: "30px"
     };
+    //end auction button only appears after auction has ended
     // const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
     // if(renderSession)
     // var currentdate = new Date();

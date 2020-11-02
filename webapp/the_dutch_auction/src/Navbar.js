@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import bid_icon from './bid.png'
 
+//start page header
 class Navbar extends Component {
 
   render() {

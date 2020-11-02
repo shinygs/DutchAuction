@@ -19,17 +19,19 @@ var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 // var dps = [{x: 1, y: 10}, {x: 2, y: 13}, {x: 3, y: 18}, {x: 4, y: 20}, {x: 5, y: 17},{x: 6, y: 10}, {x: 7, y: 13}, {x: 8, y: 18}, {x: 9, y: 20}, {x: 10, y: 17}]; 
 // var xVal = dps.length + 1;
 var dps = [{ x: 0, y: 10 }]
+var secPassed = 0;
 var xVal = 0;
 var yVal = 0;
 // const startingMin = 20
 // let time = startingMin * 60
 // setInterval(startTimer(this.state.time), 1000)
 
+//auction page
 class AuctionApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      time: 20 * 60, //time is 15sec for testing (can change later) // now is 20 minutes
+      time: 20 * 60, //20 minutes (duration of a single auction session)
       bidAmountInput: "",
       remainingTokens: "0",
       userTokens: "0"
@@ -40,18 +42,19 @@ class AuctionApp extends React.Component {
     this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
     this.calcRemainTokens = this.calcRemainTokens.bind(this);
     this.calcExpectedTokens = this.calcExpectedTokens.bind(this);
-    // this.updateStageInAA = this.updateStageInAA.bind(this);
   }
 
+  //keep track of time left for the dutch auction session
   timer() {
     this.setState({
       time: this.state.time - 1
     })
     if (this.state.time < 1) {
-      clearInterval(this.intervalId);
+      clearInterval(this.intervalId); //
     }
   }
 
+  //refresh timer and graph every 1 second
   componentDidMount() {
     this.intervalId = setInterval(this.timer.bind(this), 1000);
     this.chartInterval = setInterval(this.updateChart.bind(this), 1000);
@@ -68,26 +71,27 @@ class AuctionApp extends React.Component {
 
   //comment out this method if dw the auto generated dynamic graph
   updateXAxis() {
-    xVal++;
+      xVal++;
   }
 
+  //update the current bidding price per token every minute
   updateYAxis() {
-    if (Number.isInteger((xVal - 1) / 60) && xVal - 1 != 0) {
+      // if (Number.isInteger((xVal-1)/60) && xVal-1 != 0) {
       // yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
-      yVal = parseInt(this.props.current_price);
-    }
+        yVal = parseInt(this.props.current_price);
+    // }
   }
 
+  //update graph with the current time and current bidding price
   updateChart() {
     this.props.getPrice();
-    //add values to the dateset at runtime
     if (this.props.current_price == "") {
       return;
     }
     this.updateXAxis();
     this.updateYAxis();
     // console.log("y: " + yVal);
-    dps.push({ x: xVal, y: yVal });
+    dps.push({ x: xVal, y: yVal }); //add values to the dateset at runtime
     // console.log(dps);
   }
 
@@ -105,10 +109,6 @@ class AuctionApp extends React.Component {
   //     // let time = startingMin * 60
   //     this.setState({time: 1200})
   //     startTimer(this.state.time);
-
-  // updateStageInAA(){
-  //   this.props.updateStage();
-  // }
 
   calcExpectedTokens() { //not sure how to call
     console.log("Price now: " + this.props.price);
@@ -150,7 +150,7 @@ class AuctionApp extends React.Component {
         text: "Bidding Price VS Time"
       },
       data: [{
-        type: "spline",
+        type: "spline", 
         dataPoints: dps
       }]
     }
