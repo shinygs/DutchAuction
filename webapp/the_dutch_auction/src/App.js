@@ -6,11 +6,9 @@ import Navbar from './Navbar'
 import Popup from './Popup'
 import SelectSession from "./SelectSession"
 import Button from 'react-bootstrap/Button'
-// import { Link } from 'react-router';
 import AuctionApp from "./AuctionApp";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
 
-import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
 
 class App extends React.Component {
   constructor(props) {
@@ -182,6 +180,10 @@ class App extends React.Component {
     event.preventDefault();
   }
 
+  endHandler(){
+    this.setState({renderSession: !this.state.renderSession})
+  }
+
   clickHandler() { //click handler for start auction button
     if (this.state.renderSession) {
       this.startAuction()
@@ -232,7 +234,7 @@ class App extends React.Component {
     const buttonStyle = {
       margin: "30px"
     };
-    const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
+    // const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
     // if(renderSession)
     // var currentdate = new Date();
     // let current_time =  currentdate.getHours() + ":"  + currentdate.getMinutes()
@@ -271,11 +273,12 @@ class App extends React.Component {
               <p>{this.state.currentStage}</p>
               <div style={alignmentStyle}>
                 <Button variant="secondary" style={buttonStyle} onClick={this.onClickUpdateStage}>Check Auction Status</Button>
-                <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>{button_text}</Button>
+                <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>Start Auction</Button>
                 <Button variant="secondary" style={buttonStyle} onClick={this.clickClaimTokenHandler}> Claim My Tokens! </Button>
               </div>
             </div >
             :
+            <div>
             <AuctionApp
               getPrice={this.getPrice}
               bid={this.bid}
@@ -287,6 +290,8 @@ class App extends React.Component {
               maxTokens={this.state.maxTokens}
               tokens_remaining={this.state.tokens_remaining}
             />
+            <Button variant="secondary" style={buttonStyle} onClick={()=>this.endHandler()}>End Auction</Button>
+            </div>
         }
 
         {/* {this.state.renderSession?<SelectSession /> : null} */}
