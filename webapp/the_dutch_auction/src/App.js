@@ -12,7 +12,7 @@ import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
 
 import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
 
-
+//start page
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -78,6 +78,7 @@ class App extends React.Component {
     }
   }
 
+  //get current bidding price per token 
   async getPrice() {
     console.log(this.state.dutchAuction)
     let current_price = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call()
@@ -89,6 +90,7 @@ class App extends React.Component {
     this.setState({ current_price })
   }
 
+  //ensure GLD token account has sent 10 tokens to the Dutch Auction account?? not sure
   async setUp() {
     console.log("set up")
     //set up param is gold token address
@@ -97,6 +99,7 @@ class App extends React.Component {
     //await this.state.dutchAuction.methods.setup("0x9D78534Dc5d9D7Ee844dCcB90c8616F6D15B6883").send({ from: this.state.account })
   }
 
+  //start the dutch auction session
   async startAuction() {
     this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.account })
 
@@ -124,6 +127,7 @@ class App extends React.Component {
   //   console.log("bidded")
   // }
 
+  //open/close popup 
   togglePopup() {
     this.setState({
       showPopup: !this.state.showPopup
@@ -156,9 +160,12 @@ class App extends React.Component {
     //   ReactDOM.unmountComponentAtNode(document.getElementById('count_down'))
     // }
   }
+
   handleChange(event) {
     this.setState({ set_up_string: event.target.value });
   }
+  
+  //receive GLD token account address
   handleSubmit(event) {
     alert('setting up token with address: ' + this.state.set_up_string);
     this.setUp();
@@ -166,6 +173,7 @@ class App extends React.Component {
   }
 
   render() {
+    //end auction button only appears after auction has ended
     const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
     // if(renderSession)
     // var currentdate = new Date();
@@ -188,16 +196,17 @@ class App extends React.Component {
         {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
 
 
+        {/* loading page appears if not logged into MetaMask */}
         {this.state.loading ?
           <div id="loader" className="text-center">
             <p className="text-center">Loading...</p>
           </div>
           : this.state.renderSession ? <div>
             <SelectSession />
-            <form onSubmit={this.handleSubmit}>
+            <form onSubmit={this.handleSubmit}> 
               <label>
-                Set up auction, put GLDToken address:
-                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} />
+                Set up auction, enter GLDToken address:
+                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} /> 
               </label>
               <input type="submit" value="Submit" />
             </form>

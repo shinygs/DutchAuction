@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Switch, NavLink, Link} from 'react-router-dom';
 
 // import { Button } from 'react-bootstrap';
 
+//dutch auction session time
 class SelectSession extends React.Component{
     constructor(props)
     {
@@ -18,6 +19,7 @@ class SelectSession extends React.Component{
     //     this.setState({renderme: false});
     // }
     render(){
+        //display current time for the session start time
         var currentdate = new Date();
         let minutes = currentdate.getMinutes();
         minutes = minutes < 10 ? '0' + minutes : minutes;
