@@ -306,9 +306,9 @@ export const DUTCH_AUCTION_ABI = [
     "name": "updateStage",
     "outputs": [
       {
-        "internalType": "enum DutchAuction.Stages",
+        "internalType": "uint256",
         "name": "",
-        "type": "uint8"
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",

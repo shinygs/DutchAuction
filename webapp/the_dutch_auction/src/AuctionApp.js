@@ -5,6 +5,7 @@ import CanvasJSReact from './canvasjs.react';
 import BidButton from './BidButton.js'
 import Web3 from "web3";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
+import Button from "react-bootstrap/esm/Button";
 
 // var React = require('react');
 // var Component = React.Component;
@@ -27,15 +28,16 @@ class AuctionApp extends React.Component {
     super(props)
     this.state = {
       time: 20 * 60, //20 minutes (duration of a single auction session)
-      tokens: 0, //for testing
-      input: ""
+      bidAmountInput: "",
+      remainingTokens: "0",
+      userTokens: "0"
     }
-    this.OnClickHandler = this.OnClickHandler.bind(this)
+    // this.updateChart();
     this.updateChart = this.updateChart.bind(this)
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.bid = this.bid.bind(this)
-    this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
+    this.handleBidInputChange = this.handleBidInputChange.bind(this);
+    this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
+    this.calcRemainTokens = this.calcRemainTokens.bind(this);
+    this.calcExpectedTokens = this.calcExpectedTokens.bind(this);
   }
 
   //keep track of time left for the dutch auction session
@@ -52,64 +54,17 @@ class AuctionApp extends React.Component {
   componentDidMount() {
     this.intervalId = setInterval(this.timer.bind(this), 1000);
     this.chartInterval = setInterval(this.updateChart.bind(this), 60000);
+    this.remainTokenInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
+    this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000)
   }
 
   componentWillUnmount() {
     clearInterval(this.intervalId);
     clearInterval(this.chartInterval);
+    clearInterval(this.remainTokenInterval);
   }
 
-  async componentWillMount() {
-    await this.loadWeb3()
-    await this.loadBlockchainData()
-  }
-
-  async loadBlockchainData() {
-    const web3 = window.web3
-    this.setState({ web3 })
-    const accounts = await web3.eth.getAccounts()
-    console.log(accounts)
-    this.setState({ account: accounts[0] })
-    const dutchAuction = new web3.eth.Contract(DUTCH_AUCTION_ABI, DUTCH_AUCTION_ADDRESS)
-    this.setState({ dutchAuction })
-    console.log("dutchau smart contract")
-    console.log(dutchAuction)
-    const networkId = await web3.eth.net.getId()
-    console.log(networkId)
-    this.setState({ loading: false })
-    console.log("End of Load Data")
-  }
-
-  async loadWeb3() {
-    if (window.ethereum) {
-      window.web3 = new Web3(window.ethereum)
-      await window.ethereum.enable()
-    }
-    else if (window.web3) {
-      window.web3 = new Web3(window.web3.currentProvider)
-    }
-    else {
-      window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
-    }
-  }
-
-  async getMaxNumOfTokens() {
-    this.state.maxTokens = await this.state.dutchAuction.maxTokensSold;
-    console.log("maxTokens: " + this.state.maxTokens);
-  }
-
-  async bid(valueETH) {
-    await this.state.dutchAuction.methods.bid(this.state.account).send({ from: this.state.account, value: valueETH+"000000000000000000" })
-    console.log("bidded")
-  }
-
-  //determine number of tokens allocated based on the user's bidding amount
-  calcExpectedTokens() {
-    var amountBided = 0; // to find a way for user's input to be here
-    this.state.tokens = amountBided / this.props.getPrice;
-  }
-
-  //update the range of x axis every minute
+  //comment out this method if dw the auto generated dynamic graph
   updateXAxis() {
       xVal++;
   }
@@ -135,12 +90,12 @@ class AuctionApp extends React.Component {
     // console.log(dps);
   }
 
-    //comment this if want to show the entire graph
-    // if (dps.length >  10 ) {
-    // 	dps.shift();
-    // }
-    // this.chart.render();
-  
+  //comment this if want to show the entire graph
+  // if (dps.length >  10 ) {
+  // 	dps.shift();
+  // }
+  // this.chart.render();
+
   // componentDidMount() {
   //     console.log("mounted")
   //     // var fiveMinutes = 60 * 5,
@@ -150,28 +105,33 @@ class AuctionApp extends React.Component {
   //     this.setState({time: 1200})
   //     startTimer(this.state.time);
 
-  // };
-
-
-
-  OnClickHandler() {
-    console.log("clicked")
-
-  }
-  // componentWillUnmount(){
-  //     stopTimer();
-  //}
-
-  handleChange(event) {
-    this.setState({ input: event.target.value })
+  calcExpectedTokens() { //not sure how to call
+    var temp = parseInt(this.state.bidAmountInput) / parseInt(this.props.current_price);
+    console.log("Expected tokens: " + temp);
+    if (parseInt(temp)) {
+      this.setState({ userTokens: temp })
+    }
   }
 
-  handleSubmit(event) {
-    alert('bidding this amount of ETH: ' + this.state.input);
-    this.bid(this.state.input);
+  calcRemainTokens() {
+    var temp = parseInt(this.props.maxTokens) - parseInt(this.state.userTokens);
+    console.log("Remaining tokens: " + temp);
+    if (parseInt(temp)) {
+      this.setState({ remainingTokens: temp })
+    }
+  }
+
+  handleBidInputChange(event) {
+    this.setState({ bidAmountInput: event.target.value })
+  }
+
+  handleBidInputSubmit(event) {
+    var bool = window.confirm("Bid " + this.state.bidAmountInput + " ETH ?");
+    if (bool) {
+      this.props.bid(this.state.bidAmountInput);
+    }
     event.preventDefault();
   }
-
 
   render() {
     const minutes = Math.floor(this.state.time / 60)
@@ -189,21 +149,30 @@ class AuctionApp extends React.Component {
     }
 
     return (
-      <div>
+      <div >
         <div id="count_down"></div>
         <div id="end_msg"></div>
+        <p>{this.props.currentStage}</p>
+        <button onClick={this.props.onClickUpdateStage}>Check Auction Status</button>
+        <h2>Tokens On Sale: {this.state.remainingTokens}</h2>
+        <div className='chartContainer'>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
+        </div>
+        <div className="bidding_info">
         <h3>Current Bidding Price: {this.props.current_price}</h3>
-        <h3>Tokens remaining: {this.props.maxTokens - this.state.tokens}</h3>
+        <br></br>
+        <h3>Tokens remaining: {this.state.remainingTokens}</h3>
+        <br></br>
+        <div>
+        <button onClick={this.calcRemainTokens}>Calculate Remaining Tokens On Sale</button>
+        </div>
+        <br></br>
 
         {/* {this.state.time} */}
         {(() => {
           if (document.getElementById("count_down") == null) {
-
             console.log("this is null")
-
           } else {
-
             document.getElementById("count_down").innerHTML = `${minutes} : ${seconds}`
           }
         })()}
@@ -217,15 +186,24 @@ class AuctionApp extends React.Component {
         })()}
         {this.state.time != 0 /*&& <BidButton bid={this.props.bid} />*/}
         <div id='bidButton'>
-          <form onSubmit={this.handleSubmit}>
+          <form onSubmit={this.handleBidInputSubmit}>
             <label>
               Enter your bidding amount in ETH:
-                    <input type='text' value={this.state.input} onChange={this.handleChange} placeholder='Enter Amount' required></input>
+              <input type='number'
+                value={this.state.bidAmountInput}
+                onChange={this.handleBidInputChange}
+                placeholder='Enter Amount'
+                min="0"
+                required>
+              </input>
             </label>
             <input type="submit" value="Submit" />
           </form>
         </div>
-        <h3>Expected to recieve: >= {this.state.tokens} Tokens</h3>
+        <br></br>
+        <h3>Expected to recieve: >= {this.props.currentUserTokens} Tokens</h3>
+        <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
+        </div>
         {/* <div>
               <input type = 'text' required></input>
               <button onClick={this.OnClickHandler()}>Submit</button>

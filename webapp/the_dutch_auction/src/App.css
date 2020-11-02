@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #180000;
   min-height: 5px;
   display: flex;
   /* flex-direction: column; */
@@ -59,3 +59,51 @@
   display: flex;
   justify-content: center;
 }
+
+.tokenAddress {
+  margin-left: 30%;
+}
+.status {
+  margin-left: 45%;
+}
+.body_with_nav {
+  height: 100%;
+}
+.body {
+  margin-top: 2%;
+}
+.cardGrp {
+  align-items: center;
+  width: 50%;
+  margin-left: 25%;
+}
+.page_title {
+  padding: 2px 16px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  /* Add shadows to create the "card" effect */
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  border-radius: 5px;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+.chartContainer {
+  width: 50%;
+  float: left;
+}
+.bidding_info {
+  width: 50%;
+  padding: 10px;
+  text-align: center;
+  float: right;
+
+}
+
+

@@ -1,42 +1,43 @@
-import React from "react";
+import React, { useCallback } from "react";
 import ReactDOM from "react-dom";
 import "./App.css";
 import Web3 from "web3";
 import Navbar from './Navbar'
 import Popup from './Popup'
 import SelectSession from "./SelectSession"
-import Button from 'react-bootstrap/Button';
-// import { Link } from 'react-router';
+import Button from 'react-bootstrap/Button'
 import AuctionApp from "./AuctionApp";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
 
-import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
-
-//start page
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      account: '0x0',
-      queryInput: "",
-      deposit: 0,
+      currentAccount: '0x0',
       renderSession: true,
-      showPopup: false,
+      showClearancePricePopUp: false,
       current_price: "",
       tokens_remaining: "0",
       loading: true,
       set_up_string: '',
       showClaimTokens: false,
       auctionStarted: false,
-      maxTokens: "0"
+      maxTokens: "0",
+      currentStage: "No Status"
     };
     this.getPrice = this.getPrice.bind(this)
     this.setUp = this.setUp.bind(this)
     this.startAuction = this.startAuction.bind(this)
-    // this.bid = this.bid.bind(this)
-    // this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
+    this.bid = this.bid.bind(this)
+    this.updateStage = this.updateStage.bind(this)
+    // this.getStage = this.getStage.bind(this)
+    this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.clickHandler = this.clickHandler.bind(this);
+    this.clickClaimTokenHandler = this.clickClaimTokenHandler.bind(this);
+    this.claimTokens = this.claimTokens.bind(this);
+    this.onClickUpdateStage = this.onClickUpdateStage.bind(this);
     console.log("end of constructor")
   }
 
@@ -45,13 +46,12 @@ class App extends React.Component {
     await this.loadBlockchainData()
   }
 
-
   async loadBlockchainData() {
     const web3 = window.web3
     this.setState({ web3 })
     const accounts = await web3.eth.getAccounts()
     console.log(accounts)
-    this.setState({ account: accounts[0] })
+    this.setState({ currentAccount: accounts[0] })
     const dutchAuction = new web3.eth.Contract(DUTCH_AUCTION_ABI, DUTCH_AUCTION_ADDRESS)
     this.setState({ dutchAuction })
     console.log("dutchau smart contract")
@@ -59,16 +59,27 @@ class App extends React.Component {
     const networkId = await web3.eth.net.getId()
     console.log(networkId)
     this.setState({ loading: false })
-    //this.setUp()
-    //this.startAuction()
-    //this.getPrice()
-    //this.getMaxNumOfTokens()
     console.log("End of Load Data")
   }
+
   async loadWeb3() {
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
       await window.ethereum.enable()
+      // window.ethereum.on('accountsChanged', function (accounts) {
+      //   console.log("currentAccount" + accounts)
+      //   this.setState({currentAccount:accounts[0]})
+      // })
+      window.ethereum.on("accountsChanged", accounts => {
+        console.log("current account: " + accounts[0])
+        this.setState({ currentAccount: accounts[0] });
+      });
+      // window.ethereum.on('accountsChanged', function () { //doesnt work
+      //   window.web3.eth.getAccounts(function (error, accounts) {
+      //     console.log("currently: " + accounts[0])
+      //     this.setState({ currentAccount: accounts[0] });
+      //   });
+      // });
     }
     else if (window.web3) {
       window.web3 = new Web3(window.web3.currentProvider)
@@ -83,61 +94,105 @@ class App extends React.Component {
     console.log(this.state.dutchAuction)
     let current_price = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call()
     console.log("current price = " + current_price)
-    //let stage = await this.state.dutchAuction.stage
-    //console.log("stage: " + stage)
-    //current_price = await this.state.dutchAuction.methods.toViewablePrice(current_price).call()
-    //current_price = this.state.web3.fromWei( current_price.toNumber(), 'ether' )
     this.setState({ current_price })
   }
+
+  async updateStage() { //updates the stage
+    var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens", "Auction not deployed"]
+    let stageIndex = await this.state.dutchAuction.methods.updateStage().call()
+    // console.log("updateStage called " + stageIndex)
+    console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
+    if (stageIndex != "undefined") {
+      console.log("here")
+      this.setState({ currentStage: stages[parseInt(stageIndex)] })
+    } else {
+      console.log("hererere")
+      this.setState({ currentStage: "No Status" })
+    }
+    console.log("getStage: " + this.state.currentStage)
+  }
+
+  // async getStage() { // not used
+  //   let stageIndex = await this.state.dutchAuction.stage
+  //   var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens"]
+  //   console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
+  //   if (stages[parseInt(stageIndex) != "undefined"]) {
+  //     console.log("here")
+  //     this.setState({ currentStage: stages[parseInt(stageIndex)] })
+  //   }else{
+  //     console.log("hererere")
+  //     this.setState({currentStage: "No Status"})
+  //   }
+  //   console.log("getStage: " + this.state.currentStage)
+  // }
 
   //ensure GLD token account has sent 10 tokens to the Dutch Auction account?? not sure
   async setUp() {
     console.log("set up")
     //set up param is gold token address
-    await this.state.dutchAuction.methods.setup(this.state.set_up_string).send({ from: this.state.account })
+    await this.state.dutchAuction.methods.setup(this.state.set_up_string).send({ from: this.state.currentAccount })
     console.log("just after setup")
-    //await this.state.dutchAuction.methods.setup("0x9D78534Dc5d9D7Ee844dCcB90c8616F6D15B6883").send({ from: this.state.account })
+    //await this.state.dutchAuction.methods.setup("0x9D78534Dc5d9D7Ee844dCcB90c8616F6D15B6883").send({ from: this.state.currentAccount })
   }
 
-  //start the dutch auction session
-  async startAuction() {
-    this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.account })
-
-    // if(this.state.auctionStarted == false){
-    //   this.setState = {auctionStarted : true}
-    // }
-
+  //starts the dutch auction session
+  async startAuction() { 
+    // this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
+    this.state.auctionStarted = true
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
-
     if (this.state.auctionStarted) { //change page
       this.setState({ renderSession: !this.state.renderSession })
-      console.log("hello")
+      console.log("to auction app")
     }
-
     console.log("started auction")
   }
 
-  // async getMaxNumOfTokens() {
-  //   this.state.maxTokens = await this.state.dutchAuction.maxTokensSold;
-  //   console.log("maxTokens: " + this.state.maxTokens);
-  // }
+  async getMaxNumOfTokens() { // gets number of tokens deployed
+    let maxTtemp = await this.state.dutchAuction.maxTokensSold;
+    this.setState({ maxTokens: maxTtemp });
+    console.log("maxTokens: " + this.state.maxTokens);
+  }
 
-  // async bid(valueETH) {
-  //   await this.state.dutchAuction.methods.bid(this.state.account).send({ from: this.state.account, value: valueETH+"000000000000000000" })
-  //   console.log("bidded")
-  // }
+  async bid(bidAmountInput) { //bidding function
+    console.log("Amount bidded : " + bidAmountInput);
+    var valueETHint = parseInt(bidAmountInput);
+    console.log("Amount bidded2 : " + valueETHint)
+    await this.state.dutchAuction.methods.bid(this.state.currentAccount).send({ from: this.state.currentAccount, value: valueETHint * 10 ** 18 })
+    console.log("bidded")
+  }
+
+  async claimTokens() { //claims tokens
+    await this.state.dutchAuction.methods.claimTokens(this.state.currentAccount).send({ from: this.state.currentAccount })
+    console.log("claimedTokens")
+  }
+
+  onClickUpdateStage() { //onClickHandler for update stage
+    this.updateStage()
+  }
 
   //open/close popup 
   togglePopup() {
     this.setState({
-      showPopup: !this.state.showPopup
+      showClearancePricePopUp: !this.state.showClearancePricePopUp
     });
   }
 
-  clickHandler() {
-    this.startAuction()
-    if (!this.state.renderSession) {
-      // this.setState({showPopup: !this.state.showPopup})
+  clickClaimTokenHandler(event) {
+    alert("Claiming Tokens");
+    this.claimTokens();
+    event.preventDefault();
+  }
+
+  endHandler(){
+    this.setState({renderSession: !this.state.renderSession})
+  }
+
+  clickHandler() { //click handler for start auction button
+    if (this.state.renderSession) {
+      this.startAuction()
+    }
+    else {
+      // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
       this.togglePopup()
       this.setState({
         showClaimTokens: !this.state.showClaimTokens
@@ -148,7 +203,7 @@ class App extends React.Component {
     //   this.setState({ renderSession: !this.state.renderSession })
     //   console.log("hello")
     //   if (!this.state.renderSession) {
-    //     // this.setState({showPopup: !this.state.showPopup})
+    //     // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
     //     this.togglePopup()
     //     this.setState({
     //       showClaimTokens: !this.state.showClaimTokens
@@ -161,26 +216,37 @@ class App extends React.Component {
     // }
   }
 
-  handleChange(event) {
+  handleChange(event) { // handler when input change for GLDToken text input
     this.setState({ set_up_string: event.target.value });
   }
-  
-  //receive GLD token account address
-  handleSubmit(event) {
-    alert('setting up token with address: ' + this.state.set_up_string);
-    this.setUp();
+
+  handleSubmit(event) { // handler gives alert message for GLDToken text input
+    var bool = window.confirm('setting up token with address: ' + this.state.set_up_string);
+    if (bool) {
+      this.setUp();
+    }
     event.preventDefault();
   }
 
   render() {
+    const alignmentStyle = {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center"
+    };
+    const buttonStyle = {
+      margin: "30px"
+    };
     //end auction button only appears after auction has ended
-    const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
+    // const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
     // if(renderSession)
     // var currentdate = new Date();
     // let current_time =  currentdate.getHours() + ":"  + currentdate.getMinutes()
     return (
-      <div>
-        <Navbar account={this.state.account} />
+      <div className='body_with_nav'>
+      
+        <Navbar account={this.state.currentAccount} />
+        <div className='body'>
         {/* <h2 id='page_title'>Select a Session</h2>
         <div className='container'>
           <div className='card'>
@@ -201,41 +267,59 @@ class App extends React.Component {
           <div id="loader" className="text-center">
             <p className="text-center">Loading...</p>
           </div>
-          : this.state.renderSession ? <div>
-            <SelectSession />
-            <form onSubmit={this.handleSubmit}> 
-              <label>
-                Set up auction, enter GLDToken address:
-                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} /> 
-              </label>
-              <input type="submit" value="Submit" />
-            </form>
-          </div>
+          :
+          this.state.renderSession ?
+            <div>
+              <SelectSession />
+              <form onSubmit={this.handleSubmit}>
+                <label className='tokenAddress'>
+                  Set up auction, put GLDToken address:
+                      <input type="text" value={this.state.set_up_string} onChange={this.handleChange} />
+                </label>
+                <input type="submit" value="Submit" />
+              </form>
+              <p className='status'>{this.state.currentStage}</p>
+              <div style={alignmentStyle}>
+                <Button variant="secondary" style={buttonStyle} onClick={this.onClickUpdateStage}>Check Auction Status</Button>
+                <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>Start Auction</Button>
+                <Button variant="secondary" style={buttonStyle} onClick={this.clickClaimTokenHandler}> Claim My Tokens! </Button>
+              </div>
+            </div >
             :
+            <div>
             <AuctionApp
               getPrice={this.getPrice}
               bid={this.bid}
-              maxTokens={this.state.maxTokens}
-              auctionStarted={this.state.auctionStarted}
+              onClickUpdateStage={this.onClickUpdateStage}
+              getMaxNumOfTokens={this.getMaxNumOfTokens}
+
               current_price={this.state.current_price}
-              remaining={this.state.tokens_remaining} />}
+              currentStage={this.state.currentStage}
+              maxTokens={this.state.maxTokens}
+              tokens_remaining={this.state.tokens_remaining}
+            />
+                <div class="col text-center">
+                <Button variant="secondary" style={buttonStyle} onClick={()=>this.endHandler()}>End Auction</Button>
+               </div>
+            
+            </div>
+        }
+
         {/* {this.state.renderSession?<SelectSession /> : null} */}
         {/* <div id="count_down"></div> */}
         {/* <SelectSession renderme={this.state.renderSession}/> */}
 
-
-        <button onClick={
-          this.clickHandler.bind(this)
-        }>
-          {button_text}
-        </button>
-        {/* <button onClick={() =>{this.setState({renderSession: !this.state.renderSession})}}>{button_text}</button> */}
-        {this.state.showPopup ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
+        { this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-          {this.state.showClaimTokens ? <Button>Claim My Tokens!</Button> : null}
+          {this.state.showClaimTokens ?
+            <Button
+              onClick={this.clickClaimTokenHandler}>
+              Claim My Tokens!
+            </Button>
+            : null}
         </div>
         {/* console.log(this.state.renderSession) */}
-        {console.log(this.state.renderSession)}
+        { console.log(this.state.renderSession)}
         {/* <AuctionApp /> */}
         {/* <BrowserRouter history={history}>
 
@@ -253,9 +337,9 @@ class App extends React.Component {
         {/* </div> */}
         {/* </div> */}
         {/* </div> */}
-
-
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#0099ff" fill-opacity="1" d="M0,128L48,160C96,192,192,256,288,250.7C384,245,480,171,576,165.3C672,160,768,224,864,218.7C960,213,1056,139,1152,122.7C1248,107,1344,149,1392,170.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>
       </div>
+      </div >
     );
   }
 }
