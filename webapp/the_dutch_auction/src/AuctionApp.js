@@ -71,14 +71,14 @@ class AuctionApp extends React.Component {
 
   //comment out this method if dw the auto generated dynamic graph
   updateXAxis() {
-      xVal++;
+    xVal++;
   }
 
   //update the current bidding price per token every minute
   updateYAxis() {
-      // if (Number.isInteger((xVal-1)/60) && xVal-1 != 0) {
-      // yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
-        yVal = parseInt(this.props.current_price);
+    // if (Number.isInteger((xVal-1)/60) && xVal-1 != 0) {
+    // yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+    yVal = parseInt(this.props.current_price);
     // }
   }
 
@@ -150,7 +150,7 @@ class AuctionApp extends React.Component {
         text: "Bidding Price VS Time"
       },
       data: [{
-        type: "spline", 
+        type: "spline",
         dataPoints: dps
       }]
     }
@@ -161,16 +161,16 @@ class AuctionApp extends React.Component {
       alignItems: "center"
     };
 
+    const bidStyle = {
+      padding: "10px",
+      width: "50%",
+      marginTop: "250px"
+    }
+
     return (
-      <div >
-        {/* <div id="count_down"></div>
-        <div id="end_msg"></div> */}
+      <div>
         <div style={alignmentStyle}>
           <Alert variant="info">Auction Status : {this.props.currentStage}</Alert>
-        </div>
-        <div style={alignmentStyle}>
-          <h1 id="end_msg"></h1>
-          <h1 id="count_down"> 20 : 00</h1>
         </div>
         {(() => {
           if (document.getElementById("count_down") == null) {
@@ -184,63 +184,46 @@ class AuctionApp extends React.Component {
             document.getElementById("end_msg").innerHTML = "Auction has ended"
           }
         })()}
-        <div className='chartContainer'>
-          <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
+        <div style={alignmentStyle}>
+          <h1 id="end_msg"></h1>
+          <h1 id="count_down"> 20 : 00</h1>
         </div>
-        <div className="bidding_info">
+        <div>
+          <div className="token_info">
+            <FormGroup>
+              <div class="mb-2 bg-white border border-dark rounded">
+                <Alert variant="primary" class="font-weight-bold">This Auction's supply of Gold Tokens:{' '}
+                  <Badge pill variant="danger">{this.state.remainingTokens} GLD</Badge>
+                </Alert>
+                <Alert variant="white">Current Price Per Token:{' '}
+                  <Badge pill variant="dark">{this.props.current_price} ETH</Badge>
+                </Alert>
+                <Alert variant="white">Number of Gold Tokens Left:{' '}
+                  <Badge pill variant="dark">{this.state.remainingTokens} GLD</Badge>
+                </Alert>
+              </div>
+            </FormGroup>
+          </div>
+          <div className='chartContainer'>
+            <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
+          </div>
+        </div>
+        <div style={bidStyle}>
           <FormGroup>
-            <div class="mb-2 bg-white border border-dark rounded">
-              <Alert variant="primary" class="font-weight-bold">This Auction's supply of Gold Tokens:{' '}
-                <Badge pill variant="danger">{this.state.remainingTokens} GLD</Badge>
-              </Alert>
-              <Alert variant="white">Current Price Per Token:{' '}
-                <Badge pill variant="dark">{this.props.current_price} ETH</Badge>
-              </Alert>
-              <Alert variant="white">Number of Gold Tokens Left:{' '}
-                <Badge pill variant="dark">{this.state.remainingTokens} GLD</Badge>
-              </Alert>
-            </div>
-          </FormGroup>
-          <FormGroup>
-            <div class="p-3 mb-2 bg-white border border-primary rounded">
+            <div class="p-3 mb-2 bg-white border border-dark rounded">
               <div class="form-group">
                 <Form.Label>Enter amount to Bid in ETH:</Form.Label>
-                <Form.Control type='number' value={this.state.bidAmountInput} onChange={this.handleBidInputChange} placeholder='Enter Amount In ETH' required></Form.Control>
+                <Form.Control type='number' defaultValue={this.state.bidAmountInput} onChange={this.handleBidInputChange} placeholder='Enter Amount In ETH' min='0' required></Form.Control>
                 <Form.Text className="text-muted">Change will be provided.</Form.Text>
               </div>
               <Button type="submit" onClick={this.handleBidInputSubmit} variant="primary">Bid!</Button>
             </div>
+            <Alert variant="primary">Your Gold Tokens:{' '}
+              <Badge pill variant="success">{this.state.userTokens} GLD</Badge>
+            </Alert>
           </FormGroup>
-          {/* <div id='bidButton'>
-            <form onSubmit={this.handleBidInputSubmit}>
-              <label>
-                Enter your bidding amount in ETH:
-              <input type='number'
-                  value={this.state.bidAmountInput}
-                  onChange={this.handleBidInputChange}
-                  placeholder='Enter Amount'
-                  min="0"
-                  required>
-                </input>
-              </label>
-              <input type="submit" value="Submit" />
-            </form>
-          </div> */}
-          <br></br>
-          <h3>Expected to recieve: >= {this.props.currentUserTokens} Tokens</h3>
-          <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
         </div>
-        {/* <div>
-              <input type = 'text' required></input>
-              <button onClick={this.OnClickHandler()}>Submit</button>
-              {/* <input type = 'submit' value='Submit'></input> */}
-
-        {/* </div> */}
-        {/* {this.state.time != 0 && <BidButton />} */}
-        {/* {startTimer()} */}
-        {/* {setInterval(startTimer(this.state.time), 1000)} */}
-      </div >
-
+      </div>
     );
   }
 }
@@ -278,7 +261,3 @@ class AuctionApp extends React.Component {
 //     time--;
 // }
 export default AuctionApp;
-
-// export default function AuctionApp(){
-//     return <h1>Hello Auction</h1>
-// }

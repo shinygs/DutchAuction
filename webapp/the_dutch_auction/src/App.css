@@ -94,10 +94,11 @@
 .card:hover {
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 }
-.chartContainer {
+.chartContainer{
   width: 50%;
-  float: left;
+  float: right;
 }
+
 .bidding_info {
   margin-top: 10px;
   width: 50%;
@@ -106,4 +107,10 @@
   float: right;
 }
 
-
+.token_info {
+  margin-top: 40px;
+  width: 50%;
+  padding: 10px;
+  text-align: left;
+  float: left;
+}

@@ -135,7 +135,7 @@ class App extends React.Component {
   }
 
   //starts the dutch auction session
-  async startAuction() { 
+  async startAuction() {
     // this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
     this.state.auctionStarted = true
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
@@ -178,7 +178,10 @@ class App extends React.Component {
   }
 
   endHandler() {
-    this.setState({ renderSession: !this.state.renderSession })
+    let bool = window.confirm("Confirm leave session?\nYou will not be able to come back.");
+    if (bool) {
+      this.setState({ renderSession: !this.state.renderSession });
+    }
   }
 
   clickHandler() { //click handler for start auction button
@@ -240,20 +243,6 @@ class App extends React.Component {
       <div className='body_with_nav'>
         <Navbar account={this.state.currentAccount} />
         <div className='body'>
-          {/* <h2 id='page_title'>Select a Session</h2>
-        <div className='container'>
-          <div className='card'>
-            <div className="detail_container">
-              <Session session_time = {current_time}/>
-              {/* <h4><b>{Session.state.session_date}</b></h4>
-              <p>Architect & Engineer</p> */}
-          {/* <a href="/auction.html" className="btn btn-primary stretched-link">Join Auction</a> */}
-          {/* <Link to="/AuctionApp">
-              <button>Start Auction</button>
-              
-              </Link> */}
-          {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
-
           {this.state.loading ?
             <div>
               <div style={alignmentStyle}>
@@ -265,9 +254,6 @@ class App extends React.Component {
                 </Spinner>
               </div>
             </div>
-            // <div id="loader" class="text-center">
-            //   <h1 class="text-center">Loading...</h1>
-            // </div>
             :
             this.state.renderSession ?
               <div>
@@ -306,10 +292,9 @@ class App extends React.Component {
                   maxTokens={this.state.maxTokens}
                   tokens_remaining={this.state.tokens_remaining}
                 />
-                <div class="col text-center">
-                  <Button variant="secondary" style={buttonStyle} onClick={() => this.endHandler()}>End Auction</Button>
+                <div>
+                  <Button variant="danger" style={buttonStyle} onClick={() => this.endHandler()}>Leave Auction</Button>
                 </div>
-
               </div>
           }
 
