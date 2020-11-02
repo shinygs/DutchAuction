@@ -5,7 +5,7 @@ import Web3 from "web3";
 import Navbar from './Navbar'
 import Popup from './Popup'
 import SelectSession from "./SelectSession"
-import Button from 'react-bootstrap/Button';
+import Button from 'react-bootstrap/Button'
 // import { Link } from 'react-router';
 import AuctionApp from "./AuctionApp";
 import { DUTCH_AUCTION_ADDRESS, DUTCH_AUCTION_ABI } from './config';
@@ -26,20 +26,19 @@ class App extends React.Component {
       showClaimTokens: false,
       auctionStarted: false,
       maxTokens: "0",
-      currentUserTokens: "0",
-      bidAmountInput: "",
-      currentStage: "No status"
+      currentStage: "No Status"
     };
     this.getPrice = this.getPrice.bind(this)
     this.setUp = this.setUp.bind(this)
     this.startAuction = this.startAuction.bind(this)
     this.bid = this.bid.bind(this)
     this.updateStage = this.updateStage.bind(this)
-    this.getStage = this.getStage.bind(this)
+    // this.getStage = this.getStage.bind(this)
     this.getMaxNumOfTokens = this.getMaxNumOfTokens.bind(this)
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.clickHandler = this.clickHandler.bind(this);
+    this.clickClaimTokenHandler = this.clickClaimTokenHandler.bind(this);
     this.claimTokens = this.claimTokens.bind(this);
     this.onClickUpdateStage = this.onClickUpdateStage.bind(this);
     console.log("end of constructor")
@@ -103,18 +102,31 @@ class App extends React.Component {
   async updateStage() { //updates the stage
     var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens", "Auction not deployed"]
     let stageIndex = await this.state.dutchAuction.methods.updateStage().call()
-    console.log("updateStage called " + stageIndex)
-    this.setState({ currentStage: stages[parseInt(stageIndex)] })
+    // console.log("updateStage called " + stageIndex)
+    console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
+    if (stageIndex != "undefined") {
+      console.log("here")
+      this.setState({ currentStage: stages[parseInt(stageIndex)] })
+    } else {
+      console.log("hererere")
+      this.setState({ currentStage: "No Status" })
+    }
     console.log("getStage: " + this.state.currentStage)
   }
 
-  async getStage() { // not used
-    let stageIndex = await this.state.dutchAuction.stage
-    var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens"]
-    console.log("stageIndex: " + stageIndex + " stage: " + stages[0])
-    this.setState({ currentStage: stages[parseInt(stageIndex)] })
-    console.log("getStage: " + this.state.currentStage)
-  }
+  // async getStage() { // not used
+  //   let stageIndex = await this.state.dutchAuction.stage
+  //   var stages = ["Auction needs setting up", "Auction not started", "Auction is ongoing", "Auction ended", "Claim your tokens"]
+  //   console.log("stageIndex: " + stageIndex + " stage: " + stages[parseInt(stageIndex)])
+  //   if (stages[parseInt(stageIndex) != "undefined"]) {
+  //     console.log("here")
+  //     this.setState({ currentStage: stages[parseInt(stageIndex)] })
+  //   }else{
+  //     console.log("hererere")
+  //     this.setState({currentStage: "No Status"})
+  //   }
+  //   console.log("getStage: " + this.state.currentStage)
+  // }
 
   async setUp() {
     console.log("set up")
@@ -125,7 +137,8 @@ class App extends React.Component {
   }
 
   async startAuction() { // starts auction
-    this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
+    // this.state.auctionStarted = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
+    this.state.auctionStarted = true
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
     if (this.state.auctionStarted) { //change page
       this.setState({ renderSession: !this.state.renderSession })
@@ -140,9 +153,9 @@ class App extends React.Component {
     console.log("maxTokens: " + this.state.maxTokens);
   }
 
-  async bid() { //bidding function
-    console.log("Amount bidded : " + this.state.bidAmountInput);
-    var valueETHint = parseInt(this.state.bidAmountInput);
+  async bid(bidAmountInput) { //bidding function
+    console.log("Amount bidded : " + bidAmountInput);
+    var valueETHint = parseInt(bidAmountInput);
     console.log("Amount bidded2 : " + valueETHint)
     await this.state.dutchAuction.methods.bid(this.state.currentAccount).send({ from: this.state.currentAccount, value: valueETHint * 10 ** 18 })
     console.log("bidded")
@@ -164,7 +177,7 @@ class App extends React.Component {
   }
 
   clickClaimTokenHandler(event) {
-    alert("Claiming: " + this.state.currentUserTokens + "Tokens");
+    alert("Claiming Tokens");
     this.claimTokens();
     event.preventDefault();
   }
@@ -211,6 +224,14 @@ class App extends React.Component {
   }
 
   render() {
+    const alignmentStyle = {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center"
+    };
+    const buttonStyle = {
+      margin: "30px"
+    };
     const button_text = this.state.renderSession ? "Start Auction" : "End Auction";
     // if(renderSession)
     // var currentdate = new Date();
@@ -232,7 +253,6 @@ class App extends React.Component {
               </Link> */}
         {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
 
-
         {this.state.loading ?
           <div id="loader" className="text-center">
             <p className="text-center">Loading...</p>
@@ -249,12 +269,12 @@ class App extends React.Component {
                 <input type="submit" value="Submit" />
               </form>
               <p>{this.state.currentStage}</p>
-              <button onClick={this.onClickUpdateStage}>Check Auction Status</button>
-              <button
-                onClick={this.clickHandler}>
-                {button_text}
-              </button>
-            </div>
+              <div style={alignmentStyle}>
+                <Button variant="secondary" style={buttonStyle} onClick={this.onClickUpdateStage}>Check Auction Status</Button>
+                <Button variant="secondary" style={buttonStyle} onClick={this.clickHandler}>{button_text}</Button>
+                <Button variant="secondary" style={buttonStyle} onClick={this.clickClaimTokenHandler}> Claim My Tokens! </Button>
+              </div>
+            </div >
             :
             <AuctionApp
               getPrice={this.getPrice}
@@ -264,8 +284,6 @@ class App extends React.Component {
 
               current_price={this.state.current_price}
               currentStage={this.state.currentStage}
-              currentUserTokens={this.state.currentUserTokens}
-              bidAmountInput={this.state.bidAmountInput}
               maxTokens={this.state.maxTokens}
               tokens_remaining={this.state.tokens_remaining}
             />
@@ -275,17 +293,17 @@ class App extends React.Component {
         {/* <div id="count_down"></div> */}
         {/* <SelectSession renderme={this.state.renderSession}/> */}
 
-        {this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
+        { this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
           {this.state.showClaimTokens ?
             <Button
-              onClick={this.clickClaimTokenHandler()}>
+              onClick={this.clickClaimTokenHandler}>
               Claim My Tokens!
             </Button>
             : null}
         </div>
         {/* console.log(this.state.renderSession) */}
-        {console.log(this.state.renderSession)}
+        { console.log(this.state.renderSession)}
         {/* <AuctionApp /> */}
         {/* <BrowserRouter history={history}>
 
@@ -305,7 +323,7 @@ class App extends React.Component {
         {/* </div> */}
 
 
-      </div>
+      </div >
     );
   }
 }

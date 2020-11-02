@@ -1,12 +1,12 @@
 import React from "react";
-import { BrowserRouter, Route, Switch, NavLink, Link} from 'react-router-dom';
+import ListGroup from 'react-bootstrap/ListGroup';
+import { BrowserRouter, Route, Switch, NavLink, Link } from 'react-router-dom';
 
 
 // import { Button } from 'react-bootstrap';
 
-class SelectSession extends React.Component{
-    constructor(props)
-    {
+class SelectSession extends React.Component {
+    constructor(props) {
         super(props)
         // this.state = {
         //     renderme: false
@@ -17,26 +17,39 @@ class SelectSession extends React.Component{
     // clickHandler(){
     //     this.setState({renderme: false});
     // }
-    render(){
+
+    render() {
         var currentdate = new Date();
         let hours = currentdate.getHours();
         hours = hours < 10 ? '0' + hours : hours;
         let minutes = currentdate.getMinutes();
         minutes = minutes < 10 ? '0' + minutes : minutes;
-        let current_time =  hours + ":"  + minutes
-        return(
+        let current_time = hours + ":" + minutes;
+
+        let futureHours = (currentdate.getHours() + 1) < 10 ? '0' + (currentdate.getHours() + 1) : (currentdate.getHours() + 1);
+        let futureMinutes = (currentdate.getMinutes()) < 10 ? '0' + (currentdate.getMinutes()) : (currentdate.getMinutes());
+        let future_time = futureHours + ":" + futureMinutes
+        return (
             <div>
-              <h2 id='page_title'>Select a Session</h2>
-                  <div className='container'>
-                       <div className='card'>
-                              <div className="detail_container">
-                                  <h3 >This session will start at {current_time}</h3>
-                                  {/* {console.log(this.state.renderme)} */}
-                                  {/* <Button onClick={this.clickHandler}>Start Auction</Button> */}
-                                {/* <Link to='/AuctionApp' >Start auction</Link> */}
-              {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
-              
-                        {/* <BrowserRouter>
+                <h2 id='page_title'>Select a Session</h2>
+                <ListGroup>
+                    <ListGroup.Item action href="#link1">
+                        This session will start at {current_time}
+                    </ListGroup.Item>
+                    <ListGroup.Item action href="#link2">
+                        This session will start at {future_time}
+                    </ListGroup.Item>
+                </ListGroup>
+                {/* <div className='container'>
+                    <div className='card'>
+                        <div className="detail_container">
+                            <h3 >This session will start at {current_time}</h3> */}
+                            {/* {console.log(this.state.renderme)} */}
+                            {/* <Button onClick={this.clickHandler}>Start Auction</Button> */}
+                            {/* <Link to='/AuctionApp' >Start auction</Link> */}
+                            {/* <Link to='/AuctionApp'><button onClick={onClick}>Start Auction</button></Link> */}
+
+                            {/* <BrowserRouter>
                         <div>
                             <NavLink to="/AuctionApp">Start Auction</NavLink>
                             
@@ -46,9 +59,9 @@ class SelectSession extends React.Component{
                             </Switch>
                         </div> 
                         </BrowserRouter> */}
-                        </div>
+                        {/* </div>
                     </div>
-                    </div>
+                </div> */}
             </div>
         );
     }

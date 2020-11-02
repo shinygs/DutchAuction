@@ -26,11 +26,15 @@ class AuctionApp extends React.Component {
     super(props)
     this.state = {
       time: 20 * 60, //time is 15sec for testing (can change later) // now is 20 minutes
+      bidAmountInput: "",
+      remainingTokens: "0",
+      userTokens: "0"
     }
     // this.updateChart();
     this.updateChart = this.updateChart.bind(this)
     this.handleBidInputChange = this.handleBidInputChange.bind(this);
     this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
+    this.calcRemainTokens = this.calcRemainTokens.bind(this);
     this.calcExpectedTokens = this.calcExpectedTokens.bind(this);
   }
 
@@ -46,11 +50,14 @@ class AuctionApp extends React.Component {
   componentDidMount() {
     this.intervalId = setInterval(this.timer.bind(this), 1000);
     this.chartInterval = setInterval(this.updateChart.bind(this), 1000);
+    this.remainTokenInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
+    this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000)
   }
 
   componentWillUnmount() {
     clearInterval(this.intervalId);
     clearInterval(this.chartInterval);
+    clearInterval(this.remainTokenInterval);
   }
 
   //comment out this method if dw the auto generated dynamic graph
@@ -94,20 +101,18 @@ class AuctionApp extends React.Component {
   //     startTimer(this.state.time);
 
   calcExpectedTokens() { //not sure how to call
-    var temp = parseInt(this.props.bidAmountInput) / parseInt(this.props.getPrice);
-    console.log("expectedtokens: " + temp);
-    if (temp >= 0) {
-      this.setState({ currentUserTokens: temp })
-    }else{
-      this.setState({ currentUserTokens: "error" })
+    var temp = parseInt(this.state.bidAmountInput) / parseInt(this.props.current_price);
+    console.log("Expected tokens: " + temp);
+    if (parseInt(temp)) {
+      this.setState({ userTokens: temp })
     }
   }
 
-  calcRemainTokens(){
-    var temp = parseInt(this.props.maxTokens) / parseInt(this.props.currentUserTokens);
-    console.log("expectedtokens: " + temp);
-    if (temp >= 0) {
-      this.setState({ maxTokens: temp })
+  calcRemainTokens() {
+    var temp = parseInt(this.props.maxTokens) - parseInt(this.state.userTokens);
+    console.log("Remaining tokens: " + temp);
+    if (parseInt(temp)) {
+      this.setState({ remainingTokens: temp })
     }
   }
 
@@ -116,9 +121,9 @@ class AuctionApp extends React.Component {
   }
 
   handleBidInputSubmit(event) {
-    var bool = window.confirm('bidding this amount of ETH: ' + this.props.bidAmountInput);
+    var bool = window.confirm("Bid " + this.state.bidAmountInput + " ETH ?");
     if (bool) {
-      this.props.bid();
+      this.props.bid(this.state.bidAmountInput);
     }
     event.preventDefault();
   }
@@ -144,11 +149,11 @@ class AuctionApp extends React.Component {
         <div id="end_msg"></div>
         <p>{this.props.currentStage}</p>
         <button onClick={this.props.onClickUpdateStage}>Check Auction Status</button>
-        <h2>{this.props.maxTokens}</h2>
+        <h2>Tokens On Sale: {this.state.remainingTokens}</h2>
         <CanvasJSChart options={options} onRef={ref => this.chart = ref} />
         <h3>Current Bidding Price: {this.props.current_price}</h3>
-        <h3>Tokens remaining: {this.state.maxTokens}</h3>
-        <button onClick={this.calcRemainTokens()}>calcRemainTokens</button>
+        <h3>Tokens remaining: {this.state.remainingTokens}</h3>
+        <button onClick={this.calcRemainTokens}>Calculate Remaining Tokens On Sale</button>
 
         {/* {this.state.time} */}
         {(() => {
@@ -168,13 +173,14 @@ class AuctionApp extends React.Component {
         })()}
         {this.state.time != 0 /*&& <BidButton bid={this.props.bid} />*/}
         <div id='bidButton'>
-          <form onSubmit={this.handleBidInputSubmit()}>
+          <form onSubmit={this.handleBidInputSubmit}>
             <label>
               Enter your bidding amount in ETH:
-              <input type='text'
-                value={this.props.bidAmountInput}
-                onChange={this.handleBidInputChange()}
+              <input type='number'
+                value={this.state.bidAmountInput}
+                onChange={this.handleBidInputChange}
                 placeholder='Enter Amount'
+                min="0"
                 required>
               </input>
             </label>
@@ -184,7 +190,7 @@ class AuctionApp extends React.Component {
         <h3>
           Expected to recieve: >= {this.props.currentUserTokens} Tokens
         </h3>
-        <button onClick={this.calcExpectedTokens}>calcExpectedTokens</button>
+        <button onClick={this.calcExpectedTokens}>Calculate User Expected Tokens</button>
 
         {/* <div>
               <input type = 'text' required></input>
