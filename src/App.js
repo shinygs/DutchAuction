@@ -132,9 +132,9 @@ class App extends React.Component {
   //starts the dutch auction session
   async startAuction() {
     // comment first three lines to edit without restarting ganache
-    let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
-    console.log("bool: " + bool)
-    this.setState({auctionStarted:bool})
+    // let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
+    // console.log("bool: " + bool)
+    // this.setState({auctionStarted:bool})
     this.setState({ auctionStarted: true })
     console.log("started auction")
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
@@ -181,6 +181,8 @@ class App extends React.Component {
     let bool = window.confirm("Confirm leave session?\nYou will not be able to come back.");
     if (bool) {
       this.setState({ renderSession: !this.state.renderSession });
+      this.togglePopup()
+      // this.setState({ showClaimTokens: !this.state.showClaimTokens })
     }
   }
 
@@ -188,13 +190,13 @@ class App extends React.Component {
     if (this.state.renderSession) {
       this.startAuction()
     }
-    else {
-      // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
-      this.togglePopup()
-      this.setState({
-        showClaimTokens: !this.state.showClaimTokens
-      });
-    }
+    // else {
+    //   // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
+    //   this.togglePopup()
+    //   this.setState({
+    //     showClaimTokens: !this.state.showClaimTokens
+    //   });
+    // }
   }
 
   handleChange(event) { // handler when input change for GLDToken text input
@@ -274,7 +276,7 @@ class App extends React.Component {
                 </div>
               </div>
           }
-          {this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.current_price + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
+          {this.state.showClearancePricePopUp ? <Popup text={this.state.current_price } closePopup={this.togglePopup.bind(this)} /> : null}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {this.state.showClaimTokens ?
               <Button

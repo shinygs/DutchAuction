@@ -25,7 +25,9 @@
   left: 35%;
   margin-top: -50px;
   margin-left: -50px;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 35%;
+  height: 50px;
+  /* background-color: rgba(0, 0, 0, 0.5); */
 }
 
 .font {
