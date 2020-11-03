@@ -40,10 +40,9 @@ class AuctionApp extends React.Component {
     }
   }
 
-  //refresh timer and graph every 1 second
   componentDidMount() {
-    this.intervalId = setInterval(this.timer.bind(this), 1000);
-    this.chartInterval = setInterval(this.updateChart.bind(this), 1000);
+    this.intervalId = setInterval(this.timer.bind(this), 1000); //refresh timer every 1 second
+    this.chartInterval = setInterval(this.updateChart.bind(this), 60000); //refresh graph every 1 minute
     this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000);
     this.calcRemainTokensInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
   }
