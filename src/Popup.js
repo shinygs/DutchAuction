@@ -1,13 +1,22 @@
 import React from "react";
-import "./Popup.css"
+import "./Popup.css";
+import FormGroup from "react-bootstrap/FormGroup";
+import Alert from "react-bootstrap/Alert"
+import Button from 'react-bootstrap/Button';
+import Badge from "react-bootstrap/Badge";
 class Popup extends React.Component{
     render(){
         return(
-            <div className='popup'>  
-                <div className='popup\_inner'>  
-                <h1 className='font'>{this.props.text}</h1>  
-                <button onClick={this.props.closePopup}>close me</button>  
-                </div>  
+            <div className="popup">
+                <FormGroup>
+                    <Alert variant="primary">
+                        <h4>At Clearance price: <Badge pill variant="danger">{this.props.text} Eth</Badge> per token</h4>
+                        <div class="col text-right">
+                            <Button variant="primary" onClick={this.props.closePopup}>Close me</Button>
+                        </div>
+                        
+                      </Alert>
+                </FormGroup>
             </div>
         )
     }

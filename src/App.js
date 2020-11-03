@@ -280,19 +280,20 @@ class App extends React.Component {
     if (this.state.renderSession) {
       this.startAuction()
     }
-    else {
-      // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
-      this.togglePopup()
-      this.setState({
-        showClaimTokens: !this.state.showClaimTokens
-      });
-    }
+    // else {
+    //   // this.setState({showClearancePricePopUp: !this.state.showClearancePricePopUp})
+    //   this.togglePopup()
+    //   this.setState({
+    //     showClaimTokens: !this.state.showClaimTokens
+    //   });
+    // }
   }
 
   clickLeaveAuctionHandler() {
     let bool = window.confirm("Confirm leave session?\nYou will not be able to come back.");
     if (bool) {
       this.setState({ renderSession: !this.state.renderSession });
+      this.togglePopup();
     }
   }
 
@@ -386,7 +387,7 @@ class App extends React.Component {
                   <div className="w-50 p-3 mb-2 bg-white border border-primary rounded">
                     <Alert variant="primary" className="text-dark font-weight-bold"><h3>Set up auction</h3></Alert>
                     <div className="form-group">
-                      <label><h5>Enter GLD Token Address: </h5></label>
+                      <label><h5>Enter Gold Token Address: </h5></label>
                       <input type="text" className="form-control" value={this.state.setUpString} onChange={this.handleSetUpStrChange} placeholder="Enter Gold Token address here"></input>
                     </div>
                     <Button type="submit" onClick={this.handleSubmit} variant="primary">Submit Address</Button>
@@ -444,7 +445,7 @@ class App extends React.Component {
                 </div>
               </div>
           }
-          {this.state.showClearancePricePopUp ? <Popup text={'At Clearance price:' + this.state.currentPerTokenPrice + 'ETH per token'} closePopup={this.togglePopup.bind(this)} /> : null}
+          {this.state.showClearancePricePopUp ? <Popup text={this.state.currentPerTokenPrice } closePopup={this.togglePopup.bind(this)} /> : null}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {this.state.showClaimTokens ?
               <Button
