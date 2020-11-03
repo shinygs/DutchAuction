@@ -20,13 +20,13 @@ class AuctionApp extends React.Component {
       bidAmountInput: "",
       previousBiddedAmount: "0",
       remainingTokens: "0",
+      soldTokens: "0",
       userTokens: "0"
     }
     // this.updateChart();
     this.updateChart = this.updateChart.bind(this)
     this.handleBidInputChange = this.handleBidInputChange.bind(this);
     this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
-    this.calcRemainTokens = this.calcRemainTokens.bind(this);
     this.calcExpectedTokens = this.calcExpectedTokens.bind(this);
   }
 
@@ -45,7 +45,6 @@ class AuctionApp extends React.Component {
     this.intervalId = setInterval(this.timer.bind(this), 1000);
     this.chartInterval = setInterval(this.updateChart.bind(this), 1000);
     this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000);
-    this.calcRemainTokensInterval = setInterval(this.calcRemainTokens.bind(this), 1000);
   }
 
   componentWillUnmount() {
@@ -62,13 +61,13 @@ class AuctionApp extends React.Component {
 
   //update the current bidding price per token every minute
   updateYAxis() {
-    yVal = parseInt(this.props.current_price);
+    yVal = parseInt(this.props.currentPerTokenPrice);
   }
 
   //update graph with the current time and current bidding price
   updateChart() {
     this.props.getPrice();
-    if (this.props.current_price == "") {
+    if (this.props.currentPerTokenPrice == "") {
       return;
     }
     this.updateXAxis();
@@ -77,9 +76,9 @@ class AuctionApp extends React.Component {
   }
 
   calcExpectedTokens() { //not sure how to call
-    console.log("Price now: " + this.props.current_price);
+    console.log("Price now: " + this.props.currentPerTokenPrice);
     console.log("Bid Amount: " + this.state.previousBiddedAmount);
-    var temp = parseFloat(this.state.previousBiddedAmount) / parseInt(this.props.current_price);
+    var temp = parseFloat(this.state.previousBiddedAmount) / parseInt(this.props.currentPerTokenPrice);
     console.log("Expected tokens: " + temp);
     if (parseFloat(temp) <= 10) {
       this.setState({ userTokens: temp })
@@ -89,25 +88,15 @@ class AuctionApp extends React.Component {
     }
   }
 
-  calcRemainTokens() {
-    this.props.getMaxNumOfTokens();
-    console.log("Max Tokens: " + this.props.maxTokens);
-    var temp = parseFloat(this.props.maxTokens) - parseFloat(this.state.userTokens);
-    console.log("Remaining tokens: " + temp);
-    if (parseFloat(temp)) {
-      this.setState({ remainingTokens: temp })
-    }
-  }
-
   handleBidInputChange(event) {
     this.setState({ bidAmountInput: event.target.value })
   }
 
   handleBidInputSubmit(event) {
     var bool = window.confirm("Bid " + this.state.bidAmountInput + " ETH ?");
-    this.setState({ previousBiddedAmount: this.state.bidAmountInput })
     if (bool) {
-      this.props.bid(this.state.previousBiddedAmount);
+      this.props.bid(this.state.bidAmountInput);
+      this.setState({ previousBiddedAmount: this.state.bidAmountInput });
     }
     event.preventDefault();
   }
@@ -163,15 +152,15 @@ class AuctionApp extends React.Component {
         <div>
           <div className="token_info">
             <FormGroup>
-              <div class="mb-2 bg-white border border-dark rounded">
-                <Alert variant="primary" class="font-weight-bold">This Auction's supply of Gold Tokens:{' '}
-                  <Badge pill variant="danger">{this.state.remainingTokens} GLD</Badge>
+              <div className="mb-2 bg-white border border-dark rounded">
+                <Alert variant="primary" className="font-weight-bold">This Auction's supply of Gold Tokens:{' '}
+                  <Badge pill variant="danger">{this.props.maxTokens} GLD</Badge>
                 </Alert>
                 <Alert variant="white">Current Price Per Token:{' '}
-                  <Badge pill variant="dark">{this.props.current_price} ETH</Badge>
+                  <Badge pill variant="dark">{this.props.currentPerTokenPrice} ETH</Badge>
                 </Alert>
                 <Alert variant="white">Number of Gold Tokens Left:{' '}
-                  <Badge pill variant="dark">{this.state.remainingTokens} GLD</Badge>
+                  <Badge pill variant="dark">{this.props.unsoldTokens} GLD</Badge>
                 </Alert>
               </div>
             </FormGroup>
@@ -182,8 +171,8 @@ class AuctionApp extends React.Component {
         </div>
         <div style={bidStyle}>
           <FormGroup>
-            <div class="p-3 mb-2 bg-white border border-dark rounded">
-              <div class="form-group">
+            <div className="p-3 mb-2 bg-white border border-dark rounded">
+              <div className="form-group">
                 <Form.Label>Enter amount to Bid in ETH:</Form.Label>
                 <Form.Control type='number' value={this.state.bidAmountInput} onChange={this.handleBidInputChange} placeholder='Enter Amount In ETH' min='0' required></Form.Control>
                 <Form.Text className="text-muted">Change will be provided.</Form.Text>
@@ -192,6 +181,9 @@ class AuctionApp extends React.Component {
             </div>
             <Alert variant="primary">Previous bid of <u>{this.state.previousBiddedAmount} ETH</u><br />will receive{" "}
               <Badge pill variant="success">{this.state.userTokens} GLD</Badge>
+            </Alert>
+            <Alert variant="primary">You have bidded <u>{this.props.userBidAmount} ETH</u> in total.<br />You will receive{" "}
+              <Badge pill variant="success">{this.props.userExpectTokens} GLD</Badge>.
             </Alert>
           </FormGroup>
         </div>
