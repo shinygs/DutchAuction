@@ -70,6 +70,7 @@ class App extends React.Component {
 
   componentDidMount() {
     //updates auction status, gets max number of tokens and remaining tokens every second
+    this.getPriceInterval = setInterval(this.getPrice.bind(this), 1000)
     this.updateStageInterval = setInterval(this.updateStage.bind(this), 1000)
     this.getMaxNumOfTokensInterval = setInterval(this.getMaxNumOfTokens.bind(this), 1000)
     this.getRemainingTokens = setInterval(this.getRemainingTokens.bind(this), 1000)
@@ -128,6 +129,9 @@ class App extends React.Component {
 
   //get current bidding price per token 
   async getPrice() {
+    if (this.state.dutchAuction == undefined) { //to prevent an error message when starting app
+      return;
+    }
     let tempPrice = await this.state.dutchAuction.methods.calcCurrentTokenPrice().call() //call() method from contract does not need gas
     console.log("current price = " + tempPrice)
     this.setState({ currentPerTokenPrice: tempPrice })
@@ -156,7 +160,7 @@ class App extends React.Component {
   }
 
   //gets user's final tokens amount
-  async getUserFinalTokens() { //not shown yet
+  async getUserFinalTokens() {
     console.log("called getUserFinalTokens");
     let finalT = await this.state.dutchAuction.methods.getUserFinalTokens(this.state.currentAccount).call();
     console.log("final tokens: " + finalT);
@@ -231,10 +235,10 @@ class App extends React.Component {
   //starts the dutch auction session
   async startAuction() {
     console.log("started auction")
-    let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount }) // comment these lines to edit without needing to start an auction
-    console.log("bool: " + bool) // comment these lines to edit without needing to start an auction
-    this.setState({ auctionStarted: bool }) // comment these lines to edit without needing to start an auction
-    // this.setState({ auctionStarted: true }) // uncomment this line to edit UI without needing to start an auction
+    // let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount }) // comment these lines to edit without needing to start an auction
+    // console.log("bool: " + bool) // comment these lines to edit without needing to start an auction
+    // this.setState({ auctionStarted: bool }) // comment these lines to edit without needing to start an auction
+    this.setState({ auctionStarted: true }) // uncomment this line to edit UI without needing to start an auction
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
     if (this.state.auctionStarted) {
       // change page to auction app
@@ -400,7 +404,7 @@ class App extends React.Component {
                   <Button variant="primary" style={buttonStyle} onClick={this.clickStartAuctionHandler}>Start Auction</Button>
                   <Button variant="primary" style={buttonStyle} onClick={this.clickClaimTokenHandler}>Claim My Tokens!</Button>
                 </div>
-                <Accordion style={{ width: "50%", marginLeft: "315px" }}>
+                <Accordion style={{ width: "50%", marginLeft: "315px", marginRight: "315px" }}>
                   <Card>
                     <Card.Header>
                       <Accordion.Toggle as={Button} variant="primary" eventKey="0" onClick={this.getStartPandPFactor}>Setttings</Accordion.Toggle>
@@ -423,14 +427,14 @@ class App extends React.Component {
                   </Card>
                 </Accordion>
                 <div>
-                  <Badge pill variant="info" style={{ marginLeft: 900 }}><i>by SLS</i></Badge>
+                  <Badge pill variant="info" style={{ marginLeft: 900, marginRight: 100 }}><i>by SLS</i></Badge>
                 </div>
               </div >
               :
               <div>
                 <AuctionApp
                   /*pass functions to AuctionApp*/
-                  getPrice={this.getPrice}
+                  // getPrice={this.getPrice}
                   bid={this.bid}
                   /*pass variables to AuctionApp*/
                   currentPerTokenPrice={this.state.currentPerTokenPrice}
@@ -445,7 +449,7 @@ class App extends React.Component {
                 </div>
               </div>
           }
-          {this.state.showClearancePricePopUp ? <Popup text={this.state.currentPerTokenPrice } closePopup={this.togglePopup.bind(this)} /> : null}
+          {this.state.showClearancePricePopUp ? <Popup text={this.state.currentPerTokenPrice} closePopup={this.togglePopup.bind(this)} /> : null}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {this.state.showClaimTokens ?
               <Button

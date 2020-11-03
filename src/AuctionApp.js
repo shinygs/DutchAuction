@@ -7,8 +7,8 @@ import Badge from "react-bootstrap/Badge";
 import Form from "react-bootstrap/Form";
 
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-var dps = [{ x: 0, y: 10 }]
-var xVal = 0;
+var dps = [];
+var xVal = -1;
 var yVal = 0;
 
 //auction page
@@ -23,7 +23,6 @@ class AuctionApp extends React.Component {
       soldTokens: "0",
       userTokens: "0"
     }
-    // this.updateChart();
     this.updateChart = this.updateChart.bind(this)
     this.handleBidInputChange = this.handleBidInputChange.bind(this);
     this.handleBidInputSubmit = this.handleBidInputSubmit.bind(this);
@@ -36,11 +35,12 @@ class AuctionApp extends React.Component {
       time: this.state.time - 1
     })
     if (this.state.time < 1) {
-      clearInterval(this.intervalId); //
+      clearInterval(this.intervalId);
     }
   }
 
   componentDidMount() {
+    this.updateChart();
     this.intervalId = setInterval(this.timer.bind(this), 1000); //refresh timer every 1 second
     this.chartInterval = setInterval(this.updateChart.bind(this), 60000); //refresh graph every 1 minute
     this.userExpectedTokenInterval = setInterval(this.calcExpectedTokens.bind(this), 1000);
@@ -65,10 +65,6 @@ class AuctionApp extends React.Component {
 
   //update graph with the current time and current bidding price
   updateChart() {
-    this.props.getPrice();
-    if (this.props.currentPerTokenPrice == "") {
-      return;
-    }
     this.updateXAxis();
     this.updateYAxis();
     dps.push({ x: xVal, y: yVal }); //add to the x and y values array at runtime
@@ -109,7 +105,7 @@ class AuctionApp extends React.Component {
     seconds = seconds < 10 ? '0' + seconds : seconds;
 
     const options = {
-      backgroundColor: "#eaaaf2",
+      backgroundColor: "#ebeaff",
       title: {
         text: "Bidding Price (ETH) VS Time (Min)",
       },
@@ -129,7 +125,7 @@ class AuctionApp extends React.Component {
     const bidStyle = {
       padding: "10px",
       width: "50%",
-      marginTop: "250px"
+      marginTop: "220px"
     }
 
     return (
@@ -151,10 +147,10 @@ class AuctionApp extends React.Component {
         })()}
         <div style={alignmentStyle}>
           <div>
-          <h1 style={{ color: '#2ec4b6' }} id="count_down"> 20 : 00</h1>
+            <h1 id="count_down"> 20 : 00</h1>
           </div>
           <div>
-          <h3 style={{ color: '#ff9f1c' }} id="end_msg"></h3>
+            <h3 style={{ color: '#ff9f1c' }} id="end_msg"></h3>
           </div>
         </div>
         <div>
