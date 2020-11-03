@@ -132,9 +132,9 @@ class App extends React.Component {
   //starts the dutch auction session
   async startAuction() {
     // comment first three lines to edit without restarting ganache
-    // let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
-    // console.log("bool: " + bool)
-    // this.setState({auctionStarted:bool})
+    let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount })
+    console.log("bool: " + bool)
+    this.setState({auctionStarted:bool})
     this.setState({ auctionStarted: true })
     console.log("started auction")
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)

@@ -72,7 +72,7 @@ class AuctionApp extends React.Component {
     }
     this.updateXAxis();
     this.updateYAxis();
-    dps.push({ x: xVal, y: yVal }); //add values to the dateset at runtime
+    dps.push({ x: xVal, y: yVal }); //add to the x and y values array at runtime
   }
 
   calcExpectedTokens() { //not sure how to call
@@ -112,13 +112,17 @@ class AuctionApp extends React.Component {
   }
 
   render() {
-    const minutes = Math.floor(this.state.time / 60)
+    let minutes = Math.floor(this.state.time / 60)
+    if (minutes < 10) {
+      minutes = '0' + minutes;
+    }
     let seconds = this.state.time % 60
     seconds = seconds < 10 ? '0' + seconds : seconds;
 
     const options = {
+      backgroundColor: "#eaaaf2",
       title: {
-        text: "Bidding Price VS Time"
+        text: "Bidding Price (ETH) VS Time (Min)",
       },
       data: [{
         type: "spline",
@@ -129,7 +133,8 @@ class AuctionApp extends React.Component {
     const alignmentStyle = {
       display: "flex",
       justifyContent: "center",
-      alignItems: "center"
+      alignItems: "center",
+      flexDirection: "column"
     };
 
     const bidStyle = {
@@ -152,12 +157,16 @@ class AuctionApp extends React.Component {
         })()}
         {(() => {
           if (this.state.time == 0) {
-            document.getElementById("end_msg").innerHTML = "Auction has ended"
+            document.getElementById("end_msg").innerHTML = "Auction has ended!"
           }
         })()}
         <div style={alignmentStyle}>
-          <h1 id="end_msg"></h1>
-          <h1 id="count_down"> 20 : 00</h1>
+          <div>
+          <h1 style={{ color: '#2ec4b6' }} id="count_down"> 20 : 00</h1>
+          </div>
+          <div>
+          <h3 style={{ color: '#ff9f1c' }} id="end_msg"></h3>
+          </div>
         </div>
         <div>
           <div className="token_info">
