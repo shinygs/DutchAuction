@@ -21843,12 +21843,12 @@
         }
       },
       "links": {},
-      "address": "0x56698679C9Ec381231C89D664955886f96330006",
-      "transactionHash": "0xda3c363d161868f4bd97608eecbfd9924a0239c766e382da6879e15db8d8b99b"
+      "address": "0xDf6F9F522Ef1715c566D0C22e402A7873F08f654",
+      "transactionHash": "0x032499c2c4f766fea137d742254be53745e23ff6c17b3fb5c691b1e9164fe941"
     }
   },
   "schemaVersion": "3.3.1",
-  "updatedAt": "2020-11-04T09:20:24.904Z",
+  "updatedAt": "2020-11-04T13:23:42.099Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {
