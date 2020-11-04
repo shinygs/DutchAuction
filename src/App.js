@@ -235,10 +235,10 @@ class App extends React.Component {
   //starts the dutch auction session
   async startAuction() {
     console.log("started auction")
-    // let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount }) // comment these lines to edit without needing to start an auction
-    // console.log("bool: " + bool) // comment these lines to edit without needing to start an auction
-    // this.setState({ auctionStarted: bool }) // comment these lines to edit without needing to start an auction
-    this.setState({ auctionStarted: true }) // uncomment this line to edit UI without needing to start an auction
+    let bool = await this.state.dutchAuction.methods.startAuction().send({ from: this.state.currentAccount }) // comment these lines to edit without needing to start an auction
+    console.log("bool: " + bool) // comment these lines to edit without needing to start an auction
+    this.setState({ auctionStarted: bool }) // comment these lines to edit without needing to start an auction
+    // this.setState({ auctionStarted: true }) // uncomment this line to edit UI without needing to start an auction
     console.log("this.state.auctionStarted: " + this.state.auctionStarted)
     if (this.state.auctionStarted) {
       // change page to auction app
@@ -298,6 +298,7 @@ class App extends React.Component {
     if (bool) {
       this.setState({ renderSession: !this.state.renderSession });
       this.togglePopup();
+      this.getUserFinalTokens();
     }
   }
 
@@ -449,7 +450,7 @@ class App extends React.Component {
                 </div>
               </div>
           }
-          {this.state.showClearancePricePopUp ? <Popup text={this.state.currentPerTokenPrice} closePopup={this.togglePopup.bind(this)} /> : null}
+          {this.state.showClearancePricePopUp ? <Popup text={this.state.currentPerTokenPrice} tokens={this.state.userFinalTokens} closePopup={this.togglePopup.bind(this)} /> : null}
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {this.state.showClaimTokens ?
               <Button

@@ -58,7 +58,7 @@ contract DutchAuction {
   }
 
   modifier timedTransitions() {
-      if (stage == Stages.AuctionStarted && calcTokenPrice() <= calcStopPrice())
+      if (stage == Stages.AuctionStarted && calcTokenPrice() <= calcStopPrice() && totalReceived/(calcCurrentTokenPrice()*10**18) >= calcUnsoldTokens())
           finalizeAuction();
       if (stage == Stages.AuctionEnded && now > startTime + WAITING_PERIOD) // after 20 mins 
           stage = Stages.TradingStarted;
@@ -132,6 +132,9 @@ contract DutchAuction {
   {
       if (stage == Stages.AuctionEnded || stage == Stages.TradingStarted)
           return finalPrice;
+      if( stage != Stages.AuctionStarted){
+          return startingTokenPrice;
+      }
       return calcTokenPrice();
   }
 
@@ -226,10 +229,10 @@ contract DutchAuction {
           receiver = msg.sender;
       amount = msg.value;
       uint unsoldTokens = calcUnsoldTokens();
-      uint wantBuy = amount/(calcTokenPrice()*10**18); 
+      uint wantBuy = amount/(calcCurrentTokenPrice()*10**18); 
       // getting change
-      if (amount > unsoldTokens*calcTokenPrice()*10**18) {
-          uint refund = amount - unsoldTokens * calcTokenPrice()*10**18;
+      if (amount > unsoldTokens * calcCurrentTokenPrice()*10**18) {
+          uint refund = amount - unsoldTokens * calcCurrentTokenPrice()*10**18;
           if (!receiver.send(refund)){
               // Sending failed
               revert("sending change back failed");
@@ -298,6 +301,8 @@ contract DutchAuction {
         public
         returns (uint)
     {
+        if(totalReceived/(calcCurrentTokenPrice()*10**18) >= maxTokensSold/(10**18))
+            return 0;
         return maxTokensSold/(10**18) - totalReceived/(calcCurrentTokenPrice()*10**18) ;
     }
   
