@@ -4,7 +4,7 @@ Members of SLS:
 - Lin Yue
 - Steffi
 # Instructions
-You may refer to the word document "README/docx" for instructions
+You may refer to the word document "README.docx" for instructions
 ### References:
 Dutch Auction Contract
 
